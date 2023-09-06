@@ -12,12 +12,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3
-  intl_phone_field: 
+  intl_phone_field: # https://github.com/animeshxd/intl_phone_field
     path: intl_phone_field
   path_provider: ^2.1.1
   shared_preferences: ^2.2.1
-  tdffi:
-    path: tdffi
+  tdffi: # https://github.com/animeshxd/tdffi-dev
+    path: tdffi 
 
 dev_dependencies:
   flutter_lints: ^2.0.0
