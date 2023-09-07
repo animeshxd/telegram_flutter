@@ -29,7 +29,11 @@ final class AuthStateCurrentAccountReady extends AuthState {
 
 final class AuthStatePhoneNumberOrBotTokenRequired extends AuthState {}
 
-final class AuthStateCodeRequired extends AuthState {}
+final class AuthStateCodeRequired extends AuthState {
+  final AuthenticationCodeInfo codeInfo;
+
+  const AuthStateCodeRequired({required this.codeInfo});
+}
 
 final class AuthStateBotTokenInvalid extends AuthState {}
 

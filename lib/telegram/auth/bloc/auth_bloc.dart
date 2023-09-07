@@ -78,8 +78,9 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
     on<AuthorizationStateWaitPhoneNumber>(
         (event, emit) => emit(AuthStatePhoneNumberOrBotTokenRequired()));
 
-    on<AuthorizationStateWaitCode>(
-        (event, emit) => emit(AuthStateCodeRequired()));
+    on<AuthorizationStateWaitCode>((event, emit) {
+      emit(AuthStateCodeRequired(codeInfo: event.code_info));
+    });
 
     on<AuthPhoneBotTokenAquiredEvent>(
       (event, emit) async {
