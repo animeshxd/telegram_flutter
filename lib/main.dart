@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nested/nested.dart';
 import 'package:tdffi/client.dart'
     show TdlibEventController, defaultDynamicLibFile;
+import 'package:tdffi/td.dart' as t;
 
 import 'telegram/auth/bloc/auth_bloc.dart';
 import 'telegram/auth/login/view/login_screen.dart';
@@ -81,26 +82,33 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
           return BlocConsumer<AuthBloc, AuthState>(
             listener: (context, state) {
-              if (state is! AuthStateTdlibInitilizedFailed) {
+              if (state is AuthStatePhoneNumberOrBotTokenRequired) {
                 Navigator.of(context)
                     .pushNamedAndRemoveUntil('/login', (route) => false);
-              } else if (state.tries == 0) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text("Failed to Initilize Client: Exit"),
-                    action: SnackBarAction(
-                      label: 'Exit',
-                      onPressed: () {
-                        //TODO: handle initilization failed
+              }
+              if (state is AuthStateCurrentAccountReady ||
+                  state is t.AuthorizationStateReady) {
+                debugPrint('Account is ready');
+              }
+              if (state is AuthStateTdlibInitilizedFailed) {
+                if (state.tries == 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text("Failed to Initilize Client: Exit"),
+                      action: SnackBarAction(
+                        label: 'Exit',
+                        onPressed: () {
+                          //TODO: handle initilization failed
 
-                        // context
-                        //     .read<TdlibEventController>()
-                        //     .destroy()
-                        //     .then((value) => exit(0));
-                      },
+                          // context
+                          //     .read<TdlibEventController>()
+                          //     .destroy()
+                          //     .then((value) => exit(0));
+                        },
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               }
             },
             builder: (context, state) {
