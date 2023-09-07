@@ -6,24 +6,14 @@ import 'package:tdffi/td.dart' as t;
 import '../../bloc/auth_bloc.dart';
 import '../bloc/login_bloc.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(AuthCheckCurrentStateEvent());
     return BlocProvider(
-      create: (context) => LoginBloc(),
+      create: (context) => LoginBloc(context.read<AuthBloc>()),
       child: const Scaffold(body: LoginForm()),
     );
   }
@@ -44,7 +34,7 @@ class _LoginFormState extends State<LoginForm> {
           current is t.AuthorizationStateReady ||
           current is AuthStateCurrentAccountReady,
       listener: (context, state) {
-        if(context.mounted) {
+        if (context.mounted) {
           // Navigator.of(context).pushNamedAndRemoveUntil(newRouteName, (route) => false);
         }
       },
@@ -65,15 +55,13 @@ class _LoginFormState extends State<LoginForm> {
                         initialCountryCode: 'IN',
                         decoration: const InputDecoration(
                           labelText: 'Phone Number',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(),
-                          ),
+                          border: OutlineInputBorder(borderSide: BorderSide()),
                         ),
                         onChanged: (value) {
                           var loginBloc = context.read<LoginBloc>();
                           try {
-                            debugPrint(
-                                "${value.isValidNumber()}: ${value.completeNumber}");
+                            // debugPrint(
+                            //     "${value.isValidNumber()}: ${value.completeNumber}");
                             loginBloc.add(SubmitButtonFocusedEvent(
                               completeNumber: value.completeNumber,
                             ));
@@ -107,14 +95,9 @@ class _LoginFormState extends State<LoginForm> {
                         return ElevatedButton(
                           onPressed: state is SubmitButtonFocused
                               ? () {
-                                  var event = state.completeNumber.isNotEmpty
-                                      ? AuthPhoneNumberAquiredEvent(
-                                          state.completeNumber)
-                                      : state.botToken.isNotEmpty
-                                          ? AuthPhoneBotTokenAquiredEvent(
-                                              state.botToken)
-                                          : AuthCodeAquiredEvent(state.code);
-                                  context.read<AuthBloc>().add(event);
+                                  context
+                                      .read<LoginBloc>()
+                                      .add(FormSubmittedEvent(state: state));
                                 }
                               : null,
                           style: ElevatedButton.styleFrom(

@@ -1,12 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import '../../bloc/auth_bloc.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(LoginBlocInitial()) {
+  final AuthBloc _authBloc;
+
+  LoginBloc(
+    this._authBloc,
+  ) : super(LoginBlocInitial()) {
     on<SubmitButtonFocusedEvent>(
       (event, emit) => emit(
         SubmitButtonFocused(
@@ -17,14 +21,31 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ),
     );
     on<SubmitButtonNotFocusedEvent>(
-      (event, emit) => emit(SubmitButtonNotFocused()),
+      (event, emit) => emit(SubmitButtonNotFocused())
     );
+
+    on<FormSubmittedEvent>((event, emit) {
+      _authBloc.add(
+        event.state.completeNumber.isNotEmpty
+            ? AuthPhoneNumberAquiredEvent(event.state.completeNumber)
+            : event.state.botToken.isNotEmpty
+                ? AuthPhoneBotTokenAquiredEvent(event.state.botToken)
+                : AuthCodeAquiredEvent(event.state.code),
+      );
+    });
   }
   // @override
   // void onEvent(LoginEvent event) {
   //   super.onEvent(event);
   //   debugPrint(event.runtimeType.toString());
   // }
+}
+
+class FormSubmittedEvent extends LoginEvent {
+  final SubmitButtonFocused state;
+  const FormSubmittedEvent({
+    required this.state,
+  });
 }
 
 // ignore: must_be_immutable
