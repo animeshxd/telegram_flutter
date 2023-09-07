@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nested/nested.dart';
 import 'package:tdffi/client.dart'
     show TdlibEventController, defaultDynamicLibFile;
 
@@ -7,54 +8,52 @@ import 'telegram/auth/bloc/auth_bloc.dart';
 import 'telegram/auth/login/view/login_screen.dart';
 import 'telegram/client/bloc/telegram_client_bloc.dart';
 
+var dynamicLibPath =
+    "/home/user/Project/dart/tdffi-dev/td/build/$defaultDynamicLibFile";
+
 void main() {
   runApp(const MainApp());
 }
 
-class MainApp extends StatefulWidget {
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
   @override
-  State<MainApp> createState() => _MainAppState();
-}
-
-class _MainAppState extends State<MainApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<TdlibEventController>(
-          create: (context) {
-            var dynamicLibPath =
-                "/home/user/Project/dart/tdffi-dev/td/build/$defaultDynamicLibFile";
-            return TdlibEventController(dynamicLibPath: dynamicLibPath);
-          },
+    return MultiBlocAndRepositoryProvider(
+      repositories: [
+        RepositoryProvider(
+          create: (context) =>
+              TdlibEventController(dynamicLibPath: dynamicLibPath),
         ),
       ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) =>
-                TelegramClientBloc(context.read<TdlibEventController>()),
-          ),
-          BlocProvider(
-            create: (context) => AuthBloc(context.read()),
-          )
-        ],
-        child: MaterialApp(
-          initialRoute: '/',
-          routes: {
-            "/": (context) => const LoadingScreen(),
-            "/login": (context) => const LoginScreen(),
-          },
-        ),
+      blocs: [
+        BlocProvider(create: (context) => TelegramClientBloc(context.read())),
+        BlocProvider(create: (context) => AuthBloc(context.read()))
+      ],
+      child: MaterialApp(
+        initialRoute: '/',
+        routes: {
+          "/": (context) => const LoadingScreen(),
+          "/login": (context) => const LoginScreen(),
+        },
       ),
     );
   }
+}
+
+class MultiBlocAndRepositoryProvider extends MultiRepositoryProvider {
+  final Widget child;
+  final List<SingleChildWidget> repositories;
+  final List<SingleChildWidget> blocs;
+  MultiBlocAndRepositoryProvider({
+    super.key,
+    required this.child,
+    required this.repositories,
+    required this.blocs,
+  }) : super(
+          providers: repositories,
+          child: MultiBlocProvider(providers: blocs, child: child),
+        );
 }
 
 class LoadingScreen extends StatefulWidget {
