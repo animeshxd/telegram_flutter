@@ -11,19 +11,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc(
     this._authBloc,
   ) : super(LoginBlocInitial()) {
-    on<SubmitButtonFocusedEvent>(
-      (event, emit) => emit(
-        SubmitButtonFocused(
-          completeNumber: event.completeNumber,
-          botToken: event.botToken,
-          code: event.code,
-        ),
-      ),
-    );
-    on<SubmitButtonNotFocusedEvent>(
-      (event, emit) => emit(SubmitButtonNotFocused())
-    );
-
     on<FormSubmittedEvent>((event, emit) {
       _authBloc.add(
         event.state.completeNumber.isNotEmpty
@@ -32,6 +19,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
                 ? AuthPhoneBotTokenAquiredEvent(event.state.botToken)
                 : AuthCodeAquiredEvent(event.state.code),
       );
+    });
+    on<SubmitButtonFocusedEvent>((event, emit) {
+      emit(SubmitButtonFocused.event(event));
+    });
+    on<SubmitButtonNotFocusedEvent>((event, emit) {
+      emit(SubmitButtonNotFocused(hasError: event.hasError));
     });
   }
   // @override
@@ -66,6 +59,13 @@ final class SubmitButtonFocused extends LoginState {
   String completeNumber;
   String botToken;
   String code;
+  factory SubmitButtonFocused.event(SubmitButtonFocusedEvent e) {
+    return SubmitButtonFocused(
+      completeNumber: e.completeNumber,
+      code: e.code,
+      botToken: e.botToken,
+    );
+  }
 
   SubmitButtonFocused(
       {this.completeNumber = '', this.botToken = '', this.code = ''})
@@ -76,6 +76,14 @@ final class SubmitButtonFocused extends LoginState {
   List<Object> get props => [completeNumber, botToken, code];
 }
 
-final class SubmitButtonNotFocusedEvent extends LoginEvent {}
+final class SubmitButtonNotFocusedEvent extends LoginEvent {
+  final bool hasError;
 
-final class SubmitButtonNotFocused extends LoginState {}
+  const SubmitButtonNotFocusedEvent({this.hasError = false});
+}
+
+final class SubmitButtonNotFocused extends LoginState {
+  final bool hasError;
+
+  const SubmitButtonNotFocused({this.hasError = false});
+}

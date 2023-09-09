@@ -5,7 +5,7 @@ class CustomAuthEvent extends AuthorizationStateEvent {
   Map<String, dynamic> toJson() => {};
 }
 
-final class AuthInitiateEvent extends CustomAuthEvent {}
+final class InitilizeAuthEvent extends CustomAuthEvent {}
 
 final class AuthFailedEvent extends CustomAuthEvent {
   final TelegramError error;

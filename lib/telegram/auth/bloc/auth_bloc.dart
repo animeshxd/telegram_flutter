@@ -1,27 +1,26 @@
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tdffi/client.dart'
-    show
-        DefaultTdlibParameters,
-        StreamExt,
-        TdlibEventController,
-        TdlibEventExt,
-        TelegramError;
+import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart';
+
+import '../view/tdlib_init_failed_screen.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 
 typedef AuthorizationStateEvent = AuthorizationState;
 
+var logger = Logger('AuthBloc');
+
 class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   TdlibEventController client;
 
   AuthBloc(this.client) : super(AuthInitial()) {
     // debugPrint("Client: ${client.hashCode}");
-    on<AuthInitiateEvent>((event, emit) {
+    on<InitilizeAuthEvent>((event, emit) {
       client.updates
           .whereType<UpdateAuthorizationState>()
           .map((event) => event.authorization_state)
@@ -43,22 +42,22 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
       if (await client.currentAuthorizationState
           is AuthorizationStateWaitTdlibParameters) {
         var directory = await getApplicationCacheDirectory();
-        int maxTries = 5;
+        int maxTries = AuthStateTdlibInitilizedFailed.MAX_TRIES;
         while (--maxTries >= 0) {
           try {
             await client.send(
               DefaultTdlibParameters(
-                api_hash: '',
-                api_id: 0,
-                database_directory: directory.path,
-                use_message_database: true,
-              ),
+                  api_hash: '358df460e06a3e54e158276c1293790c',
+                  api_id: 3334083,
+                  database_directory: directory.path,
+                  use_message_database: true,
+                  use_test_dc: false),
             );
             emit(AuthStateTdlibInitilized());
             return;
           } on TelegramError catch (e) {
             if (e.message.contains("Can't lock file")) {
-              debugPrint(e.message);
+              logger.shout(e);
               emit(AuthStateTdlibInitilizedFailed(maxTries));
               await Future.delayed(const Duration(milliseconds: 1));
               continue;
@@ -86,6 +85,7 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
       (event, emit) async {
         try {
           await client.send(CheckAuthenticationBotToken(token: event.token));
+          add(AuthCheckCurrentStateEvent());
         } on TelegramError {
           emit(AuthStateBotTokenInvalid());
         }
@@ -95,18 +95,23 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
     on<AuthPhoneNumberAquiredEvent>(
       (event, emit) async {
         try {
-          await client.send(
-              SetAuthenticationPhoneNumber(phone_number: event.phoneNumber));
-        } on TelegramError {
-          emit(AuthStatePhoneNumberInvalid());
+          var result = await client.send(
+            SetAuthenticationPhoneNumber(phone_number: event.phoneNumber),
+          );
+          logger.fine(result);
+          add(AuthCheckCurrentStateEvent());
+        } on TelegramError catch (e) {
+          logger.shout(e);
+          emit(AuthStatePhoneNumberInvalid(error: e));
         }
       },
     );
     on<AuthCodeAquiredEvent>((event, emit) async {
       try {
         await client.send(CheckAuthenticationCode(code: event.code));
-      } on TelegramError {
-        emit(AuthStateCodeInvalid());
+        add(AuthCheckCurrentStateEvent());
+      } on TelegramError catch (e) {
+        emit(AuthStateCodeInvalid(error: e));
       }
     });
 
@@ -127,7 +132,13 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   @override
   void onEvent(AuthorizationStateEvent event) {
     super.onEvent(event);
-    debugPrint(event.runtimeType.toString());
+    logger.fine("event: ${event.runtimeType}");
+  }
+
+  @override
+  void onChange(Change<AuthState> change) {
+    super.onChange(change);
+    logger.fine("state: ${change.currentState == change.nextState} $change");
   }
 
   @override
@@ -147,9 +158,38 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   }
 }
 
-
-
 extension on TdlibEventController {
   Future<AuthorizationState> get currentAuthorizationState async =>
       await send<AuthorizationState>(GetAuthorizationState());
+}
+
+extension AuthStateExt on AuthState {
+  /// Automatically do route based on state type
+  void doRoute(BuildContext context) {
+    if (this is AuthStateTdlibInitilizedFailed) {
+      context.replace(TdlibInitFailedPage.path, extra: this);
+    }
+    if (this is AuthStateLoginRequired) {
+      context.replace('/login');
+    }
+    if (this is AuthStateCodeRequired) {
+      var codeInfo = (this as AuthStateCodeRequired).codeInfo;
+      context.replace('/login/otp', extra: codeInfo);
+    }
+    if (this is AuthStateCodeInvalid) {
+      context.replace('/login/otp#invalid');
+    }
+    if (this is AuthStatePhoneNumberOrBotTokenRequired) {
+      context.replace('/login/phoneNumber');
+    }
+    if (this is AuthStatePhoneNumberInvalid) {
+      context.replace('/login/phoneNumber#invalid');
+    }
+    if (this is AuthStateBotTokenInvalid) {
+      context.replace("/login/botToken#invalid");
+    }
+    if (this is AuthStateCurrentAccountReady) {
+      context.replace('/chat', extra: this);
+    }
+  }
 }

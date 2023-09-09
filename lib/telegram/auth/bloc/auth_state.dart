@@ -1,10 +1,7 @@
 part of 'auth_bloc.dart';
 
-sealed class AuthState extends Equatable {
+sealed class AuthState {
   const AuthState();
-
-  @override
-  List<Object> get props => [];
 }
 
 final class AuthInitial extends AuthState {}
@@ -22,9 +19,6 @@ final class AuthStateCurrentAccountReady extends AuthState {
   final User user;
 
   const AuthStateCurrentAccountReady(this.isBot, this.user);
-
-  @override
-  List<Object> get props => [isBot, user];
 }
 
 final class AuthStatePhoneNumberOrBotTokenRequired extends AuthState {}
@@ -37,16 +31,26 @@ final class AuthStateCodeRequired extends AuthState {
 
 final class AuthStateBotTokenInvalid extends AuthState {}
 
-final class AuthStatePhoneNumberInvalid extends AuthState {}
+final class AuthStatePhoneNumberInvalid extends AuthState {
+  final TelegramError error;
 
-final class AuthStateCodeInvalid extends AuthState {}
+  const AuthStatePhoneNumberInvalid({required this.error});
+}
+
+final class AuthStateCodeInvalid extends AuthState {
+  final TelegramError error;
+
+  const AuthStateCodeInvalid({required this.error});
+}
 
 final class AuthStateTdlibInitilized extends AuthState {}
 
 final class AuthStateTdlibInitilizedFailed extends AuthState {
   final int tries;
-  @override
-  List<Object> get props => [tries];
+  // ignore: non_constant_identifier_names, constant_identifier_names
+  static const int MAX_TRIES = 5;
 
   const AuthStateTdlibInitilizedFailed(this.tries);
 }
+
+// class AuthCheckCurrentStateRequired extends AuthState {}
