@@ -15,6 +15,7 @@ dependencies:
   go_router: ^10.1.2
   intl_phone_field: # https://github.com/animeshxd/intl_phone_field
     path: intl_phone_field
+  logging: ^1.2.0
   nested: ^1.0.0
   path_provider: ^2.1.1
   pinput: ^3.0.1
@@ -29,3 +30,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # assets:
+  #   - assets/test.jpg
+
+
