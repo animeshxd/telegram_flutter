@@ -15,11 +15,12 @@ final class ChatLoaded extends ChatState {
   final int totalChats;
   final int needLoaded;
   final LinkedHashSet<t.Chat> chats;
+  final RxMap<int, t.Message> lastMessages;
 
   const ChatLoaded(
     this.totalChats,
     this.needLoaded,
-    this.chats,
+    this.chats, this.lastMessages,
   );
 
   @override

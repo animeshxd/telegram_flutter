@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+import '../widget/ellipsis_text.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/chat_bloc.dart';
 
@@ -82,9 +84,18 @@ class _ChatScreenState extends State<ChatScreen> {
                     }
 
                     return ListTile(
-                      leading: avatar,
-                      title: Text(chat.title),
+                      leading: avatar, //TODO: download small photo
+                      title: EllipsisText(chat.title),
+                      subtitle: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Obx(
+                          () =>
+                              subtitle(state.lastMessages[chat.id]) ??
+                              Container(),
+                        ),
+                      ),
                       onTap: () => debugPrint(chat.toJsonEncoded()),
+                      //TODO: update realtime unread_count
                       trailing: chat.unread_count == 0
                           ? null
                           : Text(chat.unread_count.toString()),
@@ -99,5 +110,49 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  Widget? subtitle(t.Message? message) {
+    if (message == null) return null;
+    var content = message.content;
+    String? caption = switch (content.runtimeType) {
+      t.MessageAudio => content.messageAudio!.caption.text,
+      t.MessageDocument => content.messageDocument!.caption.text,
+      t.MessagePhoto => content.messagePhoto!.caption.text,
+      t.MessageText => content.messageText!.text.text,
+      t.MessagePoll => content.messagePoll!.poll.question,
+      // TODO: show who joined
+      t.MessagePinMessage => "has pinned this message",
+      t.MessageContactRegistered => "{title} has joined Telegram",
+      t.MessageChatJoinByLink => "{someone} has joined by link",
+      t.MessageChatJoinByRequest =>
+        "{someone}'s join request accepted by admin",
+      _ => null
+    };
+
+    var icon = switch (content.runtimeType) {
+      t.MessageAudio => Icons.audio_file,
+      t.MessageDocument => Icons.attach_file,
+      t.MessagePhoto => Icons.photo,
+      t.MessageCall => Icons.call,
+      _ => null
+    };
+
+    if (icon != null || caption != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (icon != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              child: Icon(icon),
+            ),
+          if (caption != null)
+            Expanded(child: EllipsisText(caption.replaceAll("\n", " ")))
+        ],
+      );
+    }
+    return null;
   }
 }

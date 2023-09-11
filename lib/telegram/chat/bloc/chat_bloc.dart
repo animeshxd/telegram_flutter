@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/state_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
@@ -18,20 +19,29 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   int needLoaded = 0;
   StreamSubscription<t.Chat>? _chatSubscription;
   StreamSubscription? _chatHistorySubscription;
+  StreamSubscription? _updateNewMessageSubscription;
   final chats = LinkedHashSet<t.Chat>(
     equals: (chat0, chat1) => chat0.id == chat1.id,
     hashCode: (c) => c.id.hashCode,
   );
 
-
-
+  final lastMessages = <int, t.Message>{}.obs;
 
   ChatBloc(this.tdlib) : super(ChatInitial()) {
     _chatSubscription = tdlib.updates
         .whereType<t.UpdateNewChat>()
         .map((event) => event.chat)
         .listen(chats.add);
-    
+
+    _chatHistorySubscription = tdlib.updates
+        .whereType<t.UpdateChatLastMessage>()
+        .where((event) => event.last_message != null)
+        .listen((event) => lastMessages[event.chat_id] = event.last_message!);
+
+    _updateNewMessageSubscription = tdlib.updates
+        .whereType<t.UpdateNewMessage>()
+        .listen((event) => lastMessages[event.message.chat_id] = event.message);
+
     on<LoadChats>((event, emit) async {
       emit(ChatLoading());
       try {
@@ -47,7 +57,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           await tdlib.send(t.LoadChats(limit: limit));
         } catch (_) {
           logger.shout('chat already loaded');
-          return emit(ChatLoaded(totalChats!, needLoaded, chats));
+          return emit(ChatLoaded(totalChats!, needLoaded, chats, lastMessages));
         }
 
         var set = await tdlib.updates
@@ -58,7 +68,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             .toSet();
         chats.addAll(set);
 
-        emit(ChatLoaded(totalChats!, needLoaded, chats));
+        emit(ChatLoaded(totalChats!, needLoaded, chats, lastMessages));
       } on Exception catch (e) {
         debugPrint(e.toString());
         emit(ChatLoadedFailed());
@@ -90,6 +100,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> close() {
     _chatSubscription?.cancel();
     _chatHistorySubscription?.cancel();
+    _updateNewMessageSubscription?.cancel();
     return super.close();
   }
 
