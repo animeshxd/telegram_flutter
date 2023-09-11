@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+import '../cubit/chat_cubit.dart';
 import '../widget/ellipsis_text.dart';
 import '../../auth/bloc/auth_bloc.dart';
-import '../bloc/chat_bloc.dart';
 
 class ChatScreen extends StatefulWidget {
   final AuthStateCurrentAccountReady? state;
@@ -22,7 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatBloc>().add(LoadChats());
+    context.read<ChatCubit>().loadChats();
     tdlib = context.read<TdlibEventController>();
   }
 
@@ -45,7 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         body: Center(
-          child: BlocBuilder<ChatBloc, ChatState>(
+          child: BlocBuilder<ChatCubit, ChatState>(
             builder: (context, state) {
               if (state is ChatLoadedFailed) {
                 return Text(

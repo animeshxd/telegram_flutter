@@ -9,10 +9,9 @@ import 'package:logging/logging.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
-part 'chat_event.dart';
 part 'chat_state.dart';
 
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
+class ChatCubit extends Cubit<ChatState> {
   late var logger = Logger(runtimeType.toString());
   final TdlibEventController tdlib;
   int? totalChats;
@@ -27,7 +26,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   final lastMessages = <int, t.Message>{}.obs;
 
-  ChatBloc(this.tdlib) : super(ChatInitial()) {
+  ChatCubit(this.tdlib) : super(ChatInitial()) {
     _chatSubscription = tdlib.updates
         .whereType<t.UpdateNewChat>()
         .map((event) => event.chat)
@@ -41,8 +40,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _updateNewMessageSubscription = tdlib.updates
         .whereType<t.UpdateNewMessage>()
         .listen((event) => lastMessages[event.message.chat_id] = event.message);
-
-    on<LoadChats>((event, emit) async {
+  }
+      void loadChats() async {
       emit(ChatLoading());
       try {
         await _setTotalChatCountIfNull();
@@ -73,8 +72,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         debugPrint(e.toString());
         emit(ChatLoadedFailed());
       }
-    });
-  }
+    }
 
   Future<void> _setTotalChatCountIfNull() async {
     if (totalChats == null) {
@@ -110,12 +108,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     super.onChange(change);
   }
 
-  @override
-  void onEvent(ChatEvent event) {
-    logger.fine(event);
-
-    super.onEvent(event);
-  }
 }
 
 class ChatLoadedFailed extends ChatState {}

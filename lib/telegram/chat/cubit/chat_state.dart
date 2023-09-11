@@ -1,4 +1,4 @@
-part of 'chat_bloc.dart';
+part of 'chat_cubit.dart';
 
 sealed class ChatState extends Equatable {
   const ChatState();
