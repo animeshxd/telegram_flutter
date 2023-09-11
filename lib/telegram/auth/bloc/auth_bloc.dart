@@ -47,11 +47,14 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
           try {
             await client.send(
               DefaultTdlibParameters(
-                  api_hash: '358df460e06a3e54e158276c1293790c',
-                  api_id: 3334083,
-                  database_directory: directory.path,
-                  use_message_database: true,
-                  use_test_dc: false),
+                api_hash: '358df460e06a3e54e158276c1293790c',
+                api_id: 3334083,
+                database_directory: directory.path,
+                use_message_database: true,
+                use_file_database: true,
+                use_chat_info_database: true,
+                use_test_dc: false,
+              ),
             );
             emit(AuthStateTdlibInitilized());
             return;

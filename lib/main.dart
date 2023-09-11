@@ -10,6 +10,7 @@ import 'telegram/auth/bloc/auth_bloc.dart';
 import 'telegram/auth/login/bloc/login_bloc.dart';
 import 'telegram/auth/login/view/routes.dart';
 import 'telegram/auth/view/tdlib_init_failed_screen.dart';
+import 'telegram/chat/bloc/chat_bloc.dart';
 import 'telegram/chat/view/chat_screen.dart';
 import 'telegram/client/bloc/telegram_client_bloc.dart';
 import 'telegram/connection/cubit/connection_cubit.dart';
@@ -60,7 +61,8 @@ class MainApp extends StatelessWidget {
         BlocProvider(create: (context) => TelegramClientBloc(context.read())),
         BlocProvider(create: (context) => AuthBloc(context.read())),
         BlocProvider(create: (context) => LoginBloc(context.read())),
-        BlocProvider(create: (context) => ConnectionCubit(context.read()))
+        BlocProvider(create: (context) => ConnectionCubit(context.read())),
+        BlocProvider(create: (context) => ChatBloc(context.read()),)
       ],
       child: MaterialApp.router(
         routerConfig: _routes,
