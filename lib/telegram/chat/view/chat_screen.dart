@@ -122,6 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
           : Icons.group,
       _ => null
     };
+    Widget? tailing;
 
     //TODO: also check if current logged in user is bot or not
     if (chat.type is t.ChatTypePrivate) {
@@ -133,6 +134,28 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       if (user.type is t.UserTypeBot) {
         icon = FontAwesomeIcons.robot;
+      }
+
+      if (user.is_verified) {
+        tailing = const Icon(
+          Icons.check_circle_outline, //TODO: ADD better
+          size: 14,
+          color: Colors.green,
+        );
+      }
+
+      if (user.is_fake || user.is_scam) {
+        tailing = Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.red),
+            borderRadius: const BorderRadius.all(Radius.circular(3)),
+          ),
+          child: Text(
+            user.is_fake ? 'FAKE' : 'SCAM',
+            style: const TextStyle(fontSize: 8),
+          ),
+        );
       }
     }
 
@@ -146,7 +169,12 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
               child: Icon(icon, size: 14),
             ),
-          if (title.isNotEmpty) Expanded(child: EllipsisText(title))
+          if (title.isNotEmpty) Flexible(child: EllipsisText(title)),
+          if (tailing != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
+              child: tailing,
+            ),
         ],
       );
     }
