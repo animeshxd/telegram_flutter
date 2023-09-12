@@ -149,6 +149,7 @@ class _ChatScreenState extends State<ChatScreen> {
     String? caption = switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
       t.MessageDocument => content.messageDocument!.caption.text,
+      t.MessageVideo => content.messageVideo!.caption.text,
       t.MessagePhoto => content.messagePhoto!.caption.text,
       t.MessageText => content.messageText!.text.text,
       t.MessagePoll => content.messagePoll!.poll.question,
@@ -165,6 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessageAudio => Icons.audio_file,
       t.MessageDocument => Icons.attach_file,
       t.MessagePhoto => Icons.photo,
+      t.MessageVideo => Icons.video_file,
       t.MessageCall => Icons.call,
       _ => null
     };
