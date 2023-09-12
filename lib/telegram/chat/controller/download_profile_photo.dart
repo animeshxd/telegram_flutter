@@ -68,13 +68,11 @@ class DownloadProfilePhoto {
     var db = await database;
 
     var result = (await db.query('file_info'))
-        .map((e) => MapEntry(e['id'] as int, e['path'] as String));
+        .map((e) => MapEntry(e['id'] as int, e['path'] as String))
+        .where((f) => !io.File(f.value).existsSync());
     state.addEntries(result);
 
-    var list = result
-        .where((f) => !io.File(f.value).existsSync())
-        .map((e) => e.key)
-        .toList();
+    var list = result.map((e) => e.key).toList();
     if (list.isEmpty) return;
     await db.delete(
       'file_info',
