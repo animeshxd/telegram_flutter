@@ -85,9 +85,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       onTap: () => debugPrint(chat.toJsonEncoded()),
                       //TODO: update realtime unread_count
-                      trailing: chat.unread_count == 0
-                          ? null
-                          : Text(chat.unread_count.toString()),
+                      trailing: Obx(() {
+                        var count = state.unReadCount[chat.id];
+                        if (count == null || count == 0) {
+                          return const SizedBox.shrink();
+                        }
+                        return Text(count.toString());
+                      }),
                     );
                   },
                 );

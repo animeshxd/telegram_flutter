@@ -26,53 +26,78 @@ class ChatCubit extends Cubit<ChatState> {
 
   final lastMessages = <int, t.Message>{}.obs;
 
+  final unReadCount = <int, int>{}.obs;
+
   ChatCubit(this.tdlib) : super(ChatInitial()) {
     _chatSubscription = tdlib.updates
         .whereType<t.UpdateNewChat>()
         .map((event) => event.chat)
-        .listen(chats.add);
+        .listen(
+      (e) {
+        chats.add(e);
+        unReadCount[e.id] = e.unread_count;
+      },
+    );
 
     _chatHistorySubscription = tdlib.updates
         .whereType<t.UpdateChatLastMessage>()
         .where((event) => event.last_message != null)
         .listen((event) => lastMessages[event.chat_id] = event.last_message!);
 
-    _updateNewMessageSubscription = tdlib.updates
-        .whereType<t.UpdateNewMessage>()
-        .listen((event) => lastMessages[event.message.chat_id] = event.message);
+    _updateNewMessageSubscription =
+        tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
+      lastMessages[event.message.chat_id] = event.message;
+      unReadCount.update(
+        event.message.chat_id,
+        (value) => value + 1,
+        ifAbsent: () => 0,
+      );
+    });
   }
-      void loadChats() async {
-      emit(ChatLoading());
-      try {
-        await _setTotalChatCountIfNull();
-        if (totalChats == null) emit(ChatLoadedFailed());
-        int limit = 10;
-        if (needLoaded < limit) {
-          limit = needLoaded;
-        }
-        needLoaded = needLoaded - 10;
-
-        try {
-          await tdlib.send(t.LoadChats(limit: limit));
-        } catch (_) {
-          logger.shout('chat already loaded');
-          return emit(ChatLoaded(totalChats!, needLoaded, chats, lastMessages));
-        }
-
-        var set = await tdlib.updates
-            .whereType<t.UpdateNewChat>()
-            .map((event) => event.chat)
-            .take(limit)
-            .timeout(const Duration(seconds: 5), onTimeout: (sink) {})
-            .toSet();
-        chats.addAll(set);
-
-        emit(ChatLoaded(totalChats!, needLoaded, chats, lastMessages));
-      } on Exception catch (e) {
-        debugPrint(e.toString());
-        emit(ChatLoadedFailed());
+  void loadChats() async {
+    emit(ChatLoading());
+    try {
+      await _setTotalChatCountIfNull();
+      if (totalChats == null) emit(ChatLoadedFailed());
+      int limit = 10;
+      if (needLoaded < limit) {
+        limit = needLoaded;
       }
+      needLoaded = needLoaded - 10;
+
+      try {
+        await tdlib.send(t.LoadChats(limit: limit));
+      } catch (_) {
+        logger.shout('chat already loaded');
+        return emit(ChatLoaded(
+          totalChats!,
+          needLoaded,
+          chats,
+          lastMessages,
+          unReadCount,
+        ));
+      }
+
+      var set = await tdlib.updates
+          .whereType<t.UpdateNewChat>()
+          .map((event) => event.chat)
+          .take(limit)
+          .timeout(const Duration(seconds: 5), onTimeout: (sink) {})
+          .toSet();
+      chats.addAll(set);
+
+      emit(ChatLoaded(
+        totalChats!,
+        needLoaded,
+        chats,
+        lastMessages,
+        unReadCount,
+      ));
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+      emit(ChatLoadedFailed());
     }
+  }
 
   Future<void> _setTotalChatCountIfNull() async {
     if (totalChats == null) {
