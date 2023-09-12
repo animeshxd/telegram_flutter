@@ -154,6 +154,8 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessageText => content.messageText!.text.text,
       t.MessagePoll => content.messagePoll!.poll.question,
       t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
+      t.MessageGame => content.messageGame!.game.short_name,
+      t.MessageGameScore => "High Score: ${content.messageGameScore!.score}",
       // TODO: show who joined
       t.MessagePinMessage => "has pinned this message",
       t.MessageContactRegistered => "{title} has joined Telegram",
@@ -169,6 +171,7 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessagePhoto => Icons.photo,
       t.MessageVideo => Icons.video_file,
       t.MessageCall => Icons.call,
+      t.MessageGame || t.MessageGameScore => Icons.games,
       _ => null
     };
 
