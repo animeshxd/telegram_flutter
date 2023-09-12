@@ -132,7 +132,6 @@ class ChatCubit extends Cubit<ChatState> {
     logger.fine(change);
     super.onChange(change);
   }
-
 }
 
 class ChatLoadedFailed extends ChatState {}

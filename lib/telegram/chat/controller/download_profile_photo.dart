@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io' as io;
-import 'package:flutter/foundation.dart';
 import 'package:get/get_rx/get_rx.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tdffi/client.dart';
@@ -37,7 +36,7 @@ class DownloadProfilePhoto {
   }
 
   void downloadFile(File? file) async {
-    debugPrint(file?.local.toString());
+    // debugPrint(file?.local.toString());
     if (file == null) return;
     if (file.local.is_downloading_completed ||
         file.local.is_downloading_active) {

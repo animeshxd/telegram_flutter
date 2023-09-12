@@ -27,7 +27,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     context.read<ChatCubit>().loadChats();
     tdlib = context.read<TdlibEventController>();
-    profilePhotoController = DownloadProfilePhoto(tdlib); // TODO: move to main.dart
+    profilePhotoController = DownloadProfilePhoto(tdlib);
+    // TODO: move to main.dart
     profilePhotoController.loadExisting();
   }
 
@@ -73,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     profilePhotoController.downloadFile(chat.photo?.small);
                     return ListTile(
                       //TODO: add better download small photo with retry
-                      leading: leading(chat), 
+                      leading: leading(chat),
                       title: EllipsisText(chat.title),
                       subtitle: Align(
                         alignment: Alignment.centerLeft,
@@ -83,7 +84,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               const SizedBox.shrink(),
                         ),
                       ),
-                      onTap: () => debugPrint(chat.toJsonEncoded()),
+                      onTap: () => debugPrint(
+                        '${state.lastMessages[chat.id]} \nchat: ${chat.toJsonEncoded()}',
+                      ),
                       //TODO: update realtime unread_count
                       trailing: Obx(() {
                         var count = state.unReadCount[chat.id];
@@ -135,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget? avatarW(
     String? path,
   ) {
-    debugPrint(path);
+    // debugPrint(path);
     if (path == null) return null;
     if (path.isEmpty) return null;
     var file = File(path);
