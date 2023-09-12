@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
@@ -63,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
               if (state is ChatLoaded) {
                 var chats = state.chats
-                    .where((element) => element.title.isNotEmpty)
+                    // .where((element) => element.title.isNotEmpty)
                     .toList();
                 chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
                 return ListView.builder(
@@ -75,7 +76,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     return ListTile(
                       //TODO: add better download small photo with retry
                       leading: leading(chat),
-                      title: EllipsisText(chat.title),
+                      title: FutureBuilder(
+                        initialData: const SizedBox.shrink(),
+                        future: titleW(chat),
+                        builder: (context, snapshot) => snapshot.data!,
+                      ),
                       subtitle: Align(
                         alignment: Alignment.centerLeft,
                         child: Obx(
@@ -106,6 +111,46 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  Future<Widget?> titleW(t.Chat chat) async {
+    var title = chat.title;
+    var icon = switch (chat.type.runtimeType) {
+      t.ChatTypeBasicGroup => Icons.group,
+      t.ChatTypeSupergroup => chat.type.chatTypeSupergroup!.is_channel
+          ? FontAwesomeIcons.bullhorn
+          : Icons.group,
+      _ => null
+    };
+
+    //TODO: also check if current logged in user is bot or not
+    if (chat.type is t.ChatTypePrivate) {
+      var user = await tdlib.send<t.User>(t.GetUser(user_id: chat.id));
+      // TODO: Fix for bot
+
+      if (user.type is t.UserTypeDeleted) {
+        title = 'Deleted Account';
+      }
+      if (user.type is t.UserTypeBot) {
+        icon = FontAwesomeIcons.robot;
+      }
+    }
+
+    if (icon != null || title.isNotEmpty) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (icon != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              child: Icon(icon, size: 14),
+            ),
+          if (title.isNotEmpty) Expanded(child: EllipsisText(title))
+        ],
+      );
+    }
+    return null;
   }
 
   Widget leading(t.Chat chat) {
