@@ -80,7 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: Obx(
                           () =>
                               subtitle(state.lastMessages[chat.id]) ??
-                              Container(),
+                              const SizedBox.shrink(),
                         ),
                       ),
                       onTap: () => debugPrint(chat.toJsonEncoded()),
