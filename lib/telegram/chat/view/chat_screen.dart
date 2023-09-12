@@ -153,6 +153,7 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessagePhoto => content.messagePhoto!.caption.text,
       t.MessageText => content.messageText!.text.text,
       t.MessagePoll => content.messagePoll!.poll.question,
+      t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
       // TODO: show who joined
       t.MessagePinMessage => "has pinned this message",
       t.MessageContactRegistered => "{title} has joined Telegram",
