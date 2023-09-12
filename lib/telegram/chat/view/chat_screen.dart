@@ -227,12 +227,12 @@ class _ChatScreenState extends State<ChatScreen> {
     if (icon != null || caption != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (icon != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Icon(icon),
+              child: Icon(icon, size: 14),
             ),
           if (caption != null)
             Expanded(child: EllipsisText(caption.replaceAll("\n", " ")))
