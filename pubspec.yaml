@@ -18,6 +18,9 @@ dependencies:
     git: https://github.com/animeshxd/intl_phone_field
   logging: ^1.2.0
   nested: ^1.0.0
+  path: ^1.8.3
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0+2
   path_provider: ^2.1.1
   pinput: ^3.0.1
   shared_preferences: ^2.2.1

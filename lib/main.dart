@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:nested/nested.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:tdffi/client.dart'
     show TdlibEventController, defaultDynamicLibFile;
 
@@ -20,6 +23,11 @@ var dynamicLibPath =
 
 void main() {
   Logger.root.level = Level.ALL;
+  if (Platform.isWindows || Platform.isLinux) {
+    sqfliteFfiInit();
+  }
+
+  databaseFactory = databaseFactoryFfi;
   // Logger.root.onRecord.listen((event) => debugPrint(event.message));
   runApp(MainApp());
 }
