@@ -29,6 +29,7 @@ class ChatCubit extends Cubit<ChatState> {
           .map((event) => event.chat)
           .listen(
         (chat) {
+          needLoaded--;
           chats.update(chat.id, (value) => chat, ifAbsent: () => chat);
           unReadCount[chat.id] = chat.unread_count;
           lastMessages.update(
@@ -68,11 +69,19 @@ class ChatCubit extends Cubit<ChatState> {
     try {
       await _setTotalChatCountIfNull();
       if (totalChats == null) emit(ChatLoadedFailed());
+      if (needLoaded == 0) {
+        return emit(ChatLoaded(
+          totalChats!,
+          needLoaded,
+          chats,
+          lastMessages,
+          unReadCount,
+        ));
+      }
       int limit = 10;
       if (needLoaded < limit) {
         limit = needLoaded;
       }
-      needLoaded = needLoaded - 10;
 
       try {
         await tdlib.send(t.LoadChats(limit: limit));
