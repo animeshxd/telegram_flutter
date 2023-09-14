@@ -91,8 +91,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           alignment: Alignment.centerLeft,
                           child: Obx(
                             () =>
-                                subtitle(state
-                                    .lastMessages[chat.id]?.last_message) ??
+                                subtitle(
+                                  state.lastMessages[chat.id]?.last_message,
+                                ) ??
                                 const SizedBox.shrink(),
                           ),
                         ),
