@@ -67,17 +67,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
 
                 return Obx(() {
-                  var messages = state.lastMessages.entries
-                      .where((element) => state.chats[element.key] != null)
-                      .map((e) => e.value)
-                      .toList();
-                  _sortLastMessages(messages);
+                  var chats = state.chats.entries.map((e) => e.value).toList();
+                  _sortChatsByPosition(chats);
                   return ListView.builder(
                     addAutomaticKeepAlives: false,
-                    itemCount: messages.length,
+                    itemCount: chats.length,
                     itemBuilder: (context, index) {
-                      var message = messages[index];
-                      var chat = state.chats[message.chat_id]!;
+                      var chat = chats[index];
                       profilePhotoController.downloadFile(chat.photo?.small);
                       return ListTile(
                         //TODO: add better download small photo with retry
@@ -98,7 +94,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         onTap: () => debugPrint(
-                          '${state.lastMessages[chat.id]?.toJsonEncoded()} \nchat: ${chat.toJsonEncoded()}',
+                          'message: ${state.lastMessages[chat.id]?.toJsonEncoded()}'
+                          '\nchat: $chat',
                         ),
                         //TODO: update realtime unread_count
                         trailing: Obx(() {
@@ -122,8 +119,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sortLastMessages(List<t.UpdateChatLastMessage> messages) {
-    messages.sort((a, b) {
+  void _sortChatsByPosition(List<Chat> chats) {
+    chats.sort((a, b) {
       var b0 = b.positions
               .where((position) => position.list.chatListMain != null)
               .map((e) => e.is_pinned ? -1 : int.parse(e.order))
@@ -141,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<Widget?> titleW(t.Chat chat) async {
+  Future<Widget?> titleW(Chat chat) async {
     var title = chat.title;
     var icon = switch (chat.type.runtimeType) {
       t.ChatTypeBasicGroup => Icons.group,
@@ -209,7 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return null;
   }
 
-  Widget leading(t.Chat chat) {
+  Widget leading(Chat chat) {
     var photo = chat.photo?.small;
     if (photo == null) {
       return _getColorAvater(chat.id, chat.title);

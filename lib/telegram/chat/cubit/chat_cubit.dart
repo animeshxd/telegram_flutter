@@ -16,7 +16,7 @@ class ChatCubit extends Cubit<ChatState> {
   int? totalChats;
   int needLoaded = 0;
   final _streamSubscriptions = <StreamSubscription>[];
-  final chats = <int, t.Chat>{}.obs;
+  final chats = <int, Chat>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
 
@@ -30,7 +30,7 @@ class ChatCubit extends Cubit<ChatState> {
           .listen(
         (chat) {
           needLoaded--;
-          chats.update(chat.id, (value) => chat, ifAbsent: () => chat);
+          chats[chat.id] = chat.mod;
           unReadCount[chat.id] = chat.unread_count;
           lastMessages.update(
             chat.id,
@@ -66,7 +66,7 @@ class ChatCubit extends Cubit<ChatState> {
       // tdlib.updates.listen(print)
 
       tdlib.updates.whereType<t.UpdateChatPosition>().listen(
-            (event) => lastMessages.update(
+            (event) => chats.update(
               event.chat_id,
               (value) {
                 value.positions.removeWhere(
@@ -76,9 +76,12 @@ class ChatCubit extends Cubit<ChatState> {
                 value.positions.add(event.position);
                 return value;
               },
-              ifAbsent: () => t.UpdateChatLastMessage(
-                chat_id: event.chat_id,
+              ifAbsent: () => Chat(
+                title: '',
+                id: event.chat_id,
                 positions: [event.position],
+                type: ChatTypeUnknown(),
+                photo: null,
               ),
             ),
           ),
@@ -124,7 +127,7 @@ class ChatCubit extends Cubit<ChatState> {
       var set = await tdlib.updates
           .whereType<t.UpdateNewChat>()
           .map((event) => event.chat)
-          .map((chat) => MapEntry(chat.id, chat))
+          .map((chat) => MapEntry(chat.id, chat.mod))
           .take(limit)
           .timeout(const Duration(seconds: 5), onTimeout: (sink) {})
           .toList();
@@ -177,3 +180,40 @@ class ChatCubit extends Cubit<ChatState> {
 }
 
 class ChatLoadedFailed extends ChatState {}
+
+// ignore: must_be_immutable
+class Chat extends Equatable {
+  final int id;
+  String title;
+  List<t.ChatPosition> positions = [];
+  t.ChatType type;
+  t.ChatPhotoInfo? photo;
+  Chat({
+    required this.id,
+    required this.title,
+    required this.positions,
+    required this.type,
+    required this.photo,
+  });
+
+  @override
+  List<Object?> get props => [id, title, positions.length];
+}
+
+final class ChatTypeUnknown extends t.ChatType {
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+extension on t.Chat {
+  /// custom Chat object
+  Chat get mod {
+    return Chat(
+      id: id,
+      title: title,
+      type: type,
+      photo: photo,
+      positions: positions,
+    );
+  }
+}
