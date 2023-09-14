@@ -15,7 +15,7 @@ final class ChatLoaded extends ChatState {
   final int totalChats;
   final int needLoaded;
   final LinkedHashSet<t.Chat> chats;
-  final RxMap<int, t.Message> lastMessages;
+  final RxMap<int, t.UpdateChatLastMessage> lastMessages;
   final RxMap<int, int> unReadCount;
 
   const ChatLoaded(

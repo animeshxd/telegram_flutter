@@ -24,7 +24,7 @@ class ChatCubit extends Cubit<ChatState> {
     hashCode: (c) => c.id.hashCode,
   );
 
-  final lastMessages = <int, t.Message>{}.obs;
+  final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
 
   final unReadCount = <int, int>{}.obs;
 
@@ -33,20 +33,42 @@ class ChatCubit extends Cubit<ChatState> {
         .whereType<t.UpdateNewChat>()
         .map((event) => event.chat)
         .listen(
-      (e) {
-        chats.add(e);
-        unReadCount[e.id] = e.unread_count;
+      (chat) {
+        chats.update(chat.id, (value) => chat, ifAbsent: () => chat);
+        unReadCount[chat.id] = chat.unread_count;
+        lastMessages.update(
+          chat.id,
+          (value) {
+            value.last_message = chat.last_message ?? value.last_message;
+            return value;
+          },
+          ifAbsent: () => t.UpdateChatLastMessage(
+            chat_id: chat.id,
+            positions: chat.positions,
+          ),
+        );
       },
     );
 
     _chatHistorySubscription = tdlib.updates
         .whereType<t.UpdateChatLastMessage>()
         .where((event) => event.last_message != null)
-        .listen((event) => lastMessages[event.chat_id] = event.last_message!);
+        .listen((event) => lastMessages[event.chat_id] = event);
 
     _updateNewMessageSubscription =
         tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
-      lastMessages[event.message.chat_id] = event.message;
+      lastMessages.update(
+        event.message.chat_id,
+        (value) {
+          value.last_message = event.message;
+          return value;
+        },
+        ifAbsent: () => t.UpdateChatLastMessage(
+          chat_id: event.message.chat_id,
+          positions: [],
+          last_message: event.message,
+        ),
+      );
       unReadCount.update(
         event.message.chat_id,
         (value) => value + 1,
