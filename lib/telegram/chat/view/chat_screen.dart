@@ -233,6 +233,9 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessageGame => content.messageGame!.game.short_name,
       t.MessageGameScore => "High Score: ${content.messageGameScore!.score}",
       t.MessageSupergroupChatCreate => "Channel created",
+      t.MessageChatChangeTitle =>
+        "Channel name was changed to ${content.messageChatChangeTitle!.title}",
+      t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
       // TODO: show who joined
       t.MessagePinMessage => "has pinned this message",
       t.MessageContactRegistered => "{title} has joined Telegram",
@@ -249,6 +252,7 @@ class _ChatScreenState extends State<ChatScreen> {
       t.MessageVideo => Icons.video_file,
       t.MessageCall => Icons.call,
       t.MessageGame || t.MessageGameScore => Icons.games,
+      t.MessagePoll => Icons.poll,
       _ => null
     };
 
