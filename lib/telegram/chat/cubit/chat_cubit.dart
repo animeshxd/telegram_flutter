@@ -52,6 +52,7 @@ class ChatCubit extends Cubit<ChatState> {
           .where((event) => event.last_message != null)
           .listen((event) {
         lastMessages[event.chat_id] = event;
+        if (event.last_message?.is_outgoing ?? false) return;
         unReadCount.update(
           event.chat_id,
           (value) => value + 1,
