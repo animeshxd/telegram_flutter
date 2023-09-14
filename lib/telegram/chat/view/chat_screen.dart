@@ -123,16 +123,22 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sortLastMessages(List<t.UpdateChatLastMessage> messages) {
-    messages.sort((a, b) => (b.positions
-                .where((position) => position.list.chatListMain != null)
-                .map((e) => int.parse(e.order))
-                .firstOrNull ??
-            0)
-        .compareTo(a.positions
-                .where((position) => position.list.chatListMain != null)
-                .map((e) => int.parse(e.order))
-                .firstOrNull ??
-            0));
+    messages.sort((a, b) {
+      var b0 = b.positions
+              .where((position) => position.list.chatListMain != null)
+              .map((e) => e.is_pinned ? -1 : int.parse(e.order))
+              .firstOrNull ??
+          0;
+      var a0 = a.positions
+              .where((position) => position.list.chatListMain != null)
+              .map((e) => e.is_pinned ? -1 : int.parse(e.order))
+              .firstOrNull ??
+          0;
+      if (b0 == -1) return 1;
+      if (a0 == -1) return -1;
+
+      return b0.compareTo(a0);
+    });
   }
 
   Future<Widget?> titleW(t.Chat chat) async {
