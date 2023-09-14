@@ -203,15 +203,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget leading(t.Chat chat) {
-    String title = chat.title
-        .split(" ")
-        .where((element) => element.isNotEmpty)
-        .take(2)
-        .map((e) => e[0])
-        .join();
     var photo = chat.photo?.small;
     if (photo == null) {
-      return CircleAvatar(child: Text(title));
+      return _getColorAvater(chat.id, chat.title);
     }
 
     Widget? avatar = avatarW(photo.local.path);
@@ -224,8 +218,38 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return ObxValue<RxMap<int, String>>(
       (data) =>
-          avatarW(data[photo.id]) ?? avatar ?? CircleAvatar(child: Text(title)),
+          avatarW(data[photo.id]) ??
+          avatar ??
+          _getColorAvater(chat.id, chat.title),
       profilePhotoController.state,
+    );
+  }
+
+  Widget _getColorAvater(int id, String title) {
+    List<Color> colors = const [
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.purple,
+      Colors.indigo,
+      Colors.deepOrange,
+      Colors.grey,
+      Colors.deepPurpleAccent
+    ];
+    id = int.parse(id.toString().replaceAll("-100", ""));
+    var color = colors[[0, 7, 4, 1, 6, 3, 5][(id % 7)]];
+    var shortTitle = title
+        .split(" ")
+        .where((element) => element.isNotEmpty)
+        .take(2)
+        .map((e) => e[0])
+        .join();
+    return CircleAvatar(
+      backgroundColor: color,
+      child: Text(
+        shortTitle,
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   }
 
