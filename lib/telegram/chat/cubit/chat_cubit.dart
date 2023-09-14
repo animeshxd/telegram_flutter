@@ -23,55 +23,58 @@ class ChatCubit extends Cubit<ChatState> {
   final unReadCount = <int, int>{}.obs;
 
   ChatCubit(this.tdlib) : super(ChatInitial()) {
-    StreamSubscription subscription = tdlib.updates
-        .whereType<t.UpdateNewChat>()
-        .map((event) => event.chat)
-        .listen(
-      (chat) {
-        chats.update(chat.id, (value) => chat, ifAbsent: () => chat);
-        unReadCount[chat.id] = chat.unread_count;
+    _streamSubscriptions.addAll([
+      tdlib.updates
+          .whereType<t.UpdateNewChat>()
+          .map((event) => event.chat)
+          .listen(
+        (chat) {
+          chats.update(chat.id, (value) => chat, ifAbsent: () => chat);
+          unReadCount[chat.id] = chat.unread_count;
+          lastMessages.update(
+            chat.id,
+            (value) {
+              value.last_message = chat.last_message ?? value.last_message;
+              return value;
+            },
+            ifAbsent: () => t.UpdateChatLastMessage(
+              chat_id: chat.id,
+              positions: chat.positions,
+            ),
+          );
+        },
+      ),
+
+      tdlib.updates
+          .whereType<t.UpdateChatLastMessage>()
+          .where((event) => event.last_message != null)
+          .listen((event) => lastMessages[event.chat_id] = event),
+
+      tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
         lastMessages.update(
-          chat.id,
+          event.message.chat_id,
           (value) {
-            value.last_message = chat.last_message ?? value.last_message;
+            value.last_message = event.message;
             return value;
           },
           ifAbsent: () => t.UpdateChatLastMessage(
-            chat_id: chat.id,
-            positions: chat.positions,
+            chat_id: event.message.chat_id,
+            positions: [],
+            last_message: event.message,
           ),
         );
-      },
-    );
-    _streamSubscriptions.add(subscription);
+        unReadCount.update(
+          event.message.chat_id,
+          (value) => value + 1,
+          ifAbsent: () => 0,
+        );
+      }),
 
-    subscription = tdlib.updates
-        .whereType<t.UpdateChatLastMessage>()
-        .where((event) => event.last_message != null)
-        .listen((event) => lastMessages[event.chat_id] = event);
-    _streamSubscriptions.add(subscription);
-
-    subscription =
-        tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
-      lastMessages.update(
-        event.message.chat_id,
-        (value) {
-          value.last_message = event.message;
-          return value;
-        },
-        ifAbsent: () => t.UpdateChatLastMessage(
-          chat_id: event.message.chat_id,
-          positions: [],
-          last_message: event.message,
-        ),
-      );
-      unReadCount.update(
-        event.message.chat_id,
-        (value) => value + 1,
-        ifAbsent: () => 0,
-      );
-    });
-    _streamSubscriptions.add(subscription);
+      tdlib.updates
+          .whereType<t.UpdateChatTitle>()
+          .listen((event) => chats[event.chat_id]?.title = event.title),
+      // tdlib.updates.listen(print)
+    ]);
   }
   void loadChats() async {
     emit(ChatLoading());
