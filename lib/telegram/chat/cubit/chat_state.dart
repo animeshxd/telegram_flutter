@@ -31,5 +31,7 @@ final class ChatLoaded extends ChatState {
         totalChats,
         needLoaded,
         chats.length,
+        lastMessages.length,
+        unReadCount.length,
       ];
 }
