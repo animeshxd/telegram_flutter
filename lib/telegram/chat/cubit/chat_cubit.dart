@@ -41,6 +41,7 @@ class ChatCubit extends Cubit<ChatState> {
             ifAbsent: () => t.UpdateChatLastMessage(
               chat_id: chat.id,
               positions: chat.positions,
+              last_message: chat.last_message,
             ),
           );
         },
