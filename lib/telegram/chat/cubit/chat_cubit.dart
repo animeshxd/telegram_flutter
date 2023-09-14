@@ -48,23 +48,10 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateChatLastMessage>()
           .where((event) => event.last_message != null)
-          .listen((event) => lastMessages[event.chat_id] = event),
-
-      tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
-        lastMessages.update(
-          event.message.chat_id,
-          (value) {
-            value.last_message = event.message;
-            return value;
-          },
-          ifAbsent: () => t.UpdateChatLastMessage(
-            chat_id: event.message.chat_id,
-            positions: [],
-            last_message: event.message,
-          ),
-        );
+          .listen((event) {
+        lastMessages[event.chat_id] = event;
         unReadCount.update(
-          event.message.chat_id,
+          event.chat_id,
           (value) => value + 1,
           ifAbsent: () => 0,
         );
