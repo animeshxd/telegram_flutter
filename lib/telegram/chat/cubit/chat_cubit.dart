@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -16,13 +15,10 @@ class ChatCubit extends Cubit<ChatState> {
   final TdlibEventController tdlib;
   int? totalChats;
   int needLoaded = 0;
-  StreamSubscription<t.Chat>? _chatSubscription;
+  StreamSubscription? _chatSubscription;
   StreamSubscription? _chatHistorySubscription;
   StreamSubscription? _updateNewMessageSubscription;
-  final chats = LinkedHashSet<t.Chat>(
-    equals: (chat0, chat1) => chat0.id == chat1.id,
-    hashCode: (c) => c.id.hashCode,
-  );
+  final chats = <int, t.Chat>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
 
@@ -103,10 +99,11 @@ class ChatCubit extends Cubit<ChatState> {
       var set = await tdlib.updates
           .whereType<t.UpdateNewChat>()
           .map((event) => event.chat)
+          .map((chat) => MapEntry(chat.id, chat))
           .take(limit)
           .timeout(const Duration(seconds: 5), onTimeout: (sink) {})
-          .toSet();
-      chats.addAll(set);
+          .toList();
+      chats.addEntries(set);
 
       emit(ChatLoaded(
         totalChats!,

@@ -63,46 +63,54 @@ class _ChatScreenState extends State<ChatScreen> {
               }
 
               if (state is ChatLoaded) {
-                var chats = state.chats
-                    // .where((element) => element.title.isNotEmpty)
-                    .toList();
-                chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
-                return ListView.builder(
-                  addAutomaticKeepAlives: false,
-                  itemCount: chats.length,
-                  itemBuilder: (context, index) {
-                    var chat = chats[index];
-                    profilePhotoController.downloadFile(chat.photo?.small);
-                    return ListTile(
-                      //TODO: add better download small photo with retry
-                      leading: leading(chat),
-                      title: FutureBuilder(
-                        initialData: const SizedBox.shrink(),
-                        future: titleW(chat),
-                        builder: (context, snapshot) => snapshot.data!,
-                      ),
-                      subtitle: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Obx(
-                          () =>
-                              subtitle(state.lastMessages[chat.id]) ??
-                              const SizedBox.shrink(),
+                // .where((element) => element.title.isNotEmpty)
+                // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
+
+                return Obx(() {
+                  var messages = state.lastMessages.entries
+                      .where((element) => state.chats[element.key] != null)
+                      .map((e) => e.value)
+                      .toList();
+                  _sortLastMessages(messages);
+                  return ListView.builder(
+                    addAutomaticKeepAlives: false,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      var message = messages[index];
+                      var chat = state.chats[message.chat_id]!;
+                      profilePhotoController.downloadFile(chat.photo?.small);
+                      return ListTile(
+                        //TODO: add better download small photo with retry
+                        leading: leading(chat),
+                        title: FutureBuilder(
+                          initialData: const SizedBox.shrink(),
+                          future: titleW(chat),
+                          builder: (context, snapshot) => snapshot.data!,
                         ),
-                      ),
-                      onTap: () => debugPrint(
-                        '${state.lastMessages[chat.id]} \nchat: ${chat.toJsonEncoded()}',
-                      ),
-                      //TODO: update realtime unread_count
-                      trailing: Obx(() {
-                        var count = state.unReadCount[chat.id];
-                        if (count == null || count == 0) {
-                          return const SizedBox.shrink();
-                        }
-                        return Text(count.toString());
-                      }),
-                    );
-                  },
-                );
+                        subtitle: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Obx(
+                            () =>
+                                subtitle(state
+                                    .lastMessages[chat.id]?.last_message) ??
+                                const SizedBox.shrink(),
+                          ),
+                        ),
+                        onTap: () => debugPrint(
+                          '${state.lastMessages[chat.id]?.toJsonEncoded()} \nchat: ${chat.toJsonEncoded()}',
+                        ),
+                        //TODO: update realtime unread_count
+                        trailing: Obx(() {
+                          var count = state.unReadCount[chat.id];
+                          if (count == null || count == 0) {
+                            return const SizedBox.shrink();
+                          }
+                          return Text(count.toString());
+                        }),
+                      );
+                    },
+                  );
+                });
               }
 
               return const CircularProgressIndicator();
@@ -111,6 +119,19 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void _sortLastMessages(List<t.UpdateChatLastMessage> messages) {
+    messages.sort((a, b) => (b.positions
+                .where((position) => position.list.chatListMain != null)
+                .map((e) => int.parse(e.order))
+                .firstOrNull ??
+            0)
+        .compareTo(a.positions
+                .where((position) => position.list.chatListMain != null)
+                .map((e) => int.parse(e.order))
+                .firstOrNull ??
+            0));
   }
 
   Future<Widget?> titleW(t.Chat chat) async {
@@ -264,7 +285,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (icon != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Icon(icon, size: 14),
+              child: Icon(icon, size: 17),
             ),
           if (caption != null)
             Expanded(child: EllipsisText(caption.replaceAll("\n", " ")))
