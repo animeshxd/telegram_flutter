@@ -15,9 +15,7 @@ class ChatCubit extends Cubit<ChatState> {
   final TdlibEventController tdlib;
   int? totalChats;
   int needLoaded = 0;
-  StreamSubscription? _chatSubscription;
-  StreamSubscription? _chatHistorySubscription;
-  StreamSubscription? _updateNewMessageSubscription;
+  final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, t.Chat>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
@@ -25,7 +23,7 @@ class ChatCubit extends Cubit<ChatState> {
   final unReadCount = <int, int>{}.obs;
 
   ChatCubit(this.tdlib) : super(ChatInitial()) {
-    _chatSubscription = tdlib.updates
+    StreamSubscription subscription = tdlib.updates
         .whereType<t.UpdateNewChat>()
         .map((event) => event.chat)
         .listen(
@@ -45,13 +43,15 @@ class ChatCubit extends Cubit<ChatState> {
         );
       },
     );
+    _streamSubscriptions.add(subscription);
 
-    _chatHistorySubscription = tdlib.updates
+    subscription = tdlib.updates
         .whereType<t.UpdateChatLastMessage>()
         .where((event) => event.last_message != null)
         .listen((event) => lastMessages[event.chat_id] = event);
+    _streamSubscriptions.add(subscription);
 
-    _updateNewMessageSubscription =
+    subscription =
         tdlib.updates.whereType<t.UpdateNewMessage>().listen((event) {
       lastMessages.update(
         event.message.chat_id,
@@ -71,6 +71,7 @@ class ChatCubit extends Cubit<ChatState> {
         ifAbsent: () => 0,
       );
     });
+    _streamSubscriptions.add(subscription);
   }
   void loadChats() async {
     emit(ChatLoading());
@@ -139,10 +140,8 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   @override
-  Future<void> close() {
-    _chatSubscription?.cancel();
-    _chatHistorySubscription?.cancel();
-    _updateNewMessageSubscription?.cancel();
+  Future<void> close() async {
+    await Future.wait(_streamSubscriptions.map((e) => e.cancel()));
     return super.close();
   }
 
