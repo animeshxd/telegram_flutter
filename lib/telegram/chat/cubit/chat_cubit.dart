@@ -64,6 +64,29 @@ class ChatCubit extends Cubit<ChatState> {
           .whereType<t.UpdateChatTitle>()
           .listen((event) => chats[event.chat_id]?.title = event.title),
       // tdlib.updates.listen(print)
+
+      tdlib.updates.whereType<t.UpdateChatPosition>().listen(
+            (event) => lastMessages.update(
+              event.chat_id,
+              (value) {
+                value.positions.removeWhere(
+                  (element) =>
+                      element.runtimeType == event.position.runtimeType,
+                );
+                value.positions.add(event.position);
+                return value;
+              },
+              ifAbsent: () => t.UpdateChatLastMessage(
+                chat_id: event.chat_id,
+                positions: [event.position],
+              ),
+            ),
+          ),
+
+      tdlib.updates
+          .whereType<t.UpdateChatReadInbox>()
+          .listen((event) => unReadCount[event.chat_id] = event.unread_count),
+
     ]);
   }
   void loadChats() async {
