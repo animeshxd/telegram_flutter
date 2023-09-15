@@ -26,7 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatCubit>().loadChats();
+    context.read<ChatCubit>().loadChats(t.ChatListMain());
     tdlib = context.read<TdlibEventController>();
     profilePhotoController = DownloadProfilePhoto(tdlib);
     // TODO: move to main.dart

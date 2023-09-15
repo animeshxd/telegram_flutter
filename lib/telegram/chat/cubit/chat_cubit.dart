@@ -13,8 +13,17 @@ part 'chat_state.dart';
 class ChatCubit extends Cubit<ChatState> {
   late var logger = Logger(runtimeType.toString());
   final TdlibEventController tdlib;
-  int? totalChats;
-  int needLoaded = 0;
+  final _totalChats = <Type, int?>{
+    t.ChatListMain: null,
+    t.ChatListArchive: null,
+    t.ChatListFolder: null,
+  };
+  final _needLoaded = <Type, int>{
+    t.ChatListMain: 0,
+    t.ChatListArchive: 0,
+    t.ChatListFolder: 0
+  };
+
   final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, Chat>{}.obs;
 
@@ -29,7 +38,7 @@ class ChatCubit extends Cubit<ChatState> {
           .map((event) => event.chat)
           .listen(
         (chat) {
-          needLoaded--;
+          _updateNeedLoaded(chat.positions);
           chats[chat.id] = chat.mod;
           unReadCount[chat.id] = chat.unread_count;
           lastMessages.update(
@@ -51,6 +60,9 @@ class ChatCubit extends Cubit<ChatState> {
           .whereType<t.UpdateChatLastMessage>()
           .where((event) => event.last_message != null)
           .listen((event) {
+        if (!chats.containsKey(event.chat_id)) {
+          _updateNeedLoaded(event.positions);
+        }
         lastMessages[event.chat_id] = event;
         if (event.last_message?.is_outgoing ?? false) return;
         unReadCount.update(
@@ -89,18 +101,32 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateChatReadInbox>()
           .listen((event) => unReadCount[event.chat_id] = event.unread_count),
-
     ]);
   }
-  void loadChats() async {
+
+  void _updateNeedLoaded(List<t.ChatPosition> positions) {
+    positions.map((element) => element.list.runtimeType).forEach(
+          (element) => _needLoaded.update(
+            element,
+            (value) => value - 1,
+            ifAbsent: () => 0,
+          ),
+        );
+  }
+
+  bool _isTotalChatNull(t.ChatList chatListType) =>
+      _totalChats[chatListType.runtimeType] == null;
+
+  void loadChats(t.ChatList chatListType) async {
     emit(ChatLoading());
     try {
-      await _setTotalChatCountIfNull();
-      if (totalChats == null) emit(ChatLoadedFailed());
+      await _setTotalChatCountIfNull(chatListType);
+      if (_isTotalChatNull(chatListType)) emit(ChatLoadedFailed());
+      var needLoaded = _totalChats[chatListType.runtimeType]!;
       if (needLoaded == 0) {
         return emit(ChatLoaded(
-          totalChats!,
-          needLoaded,
+          _totalChats,
+          _needLoaded,
           chats,
           lastMessages,
           unReadCount,
@@ -112,12 +138,12 @@ class ChatCubit extends Cubit<ChatState> {
       }
 
       try {
-        await tdlib.send(t.LoadChats(limit: limit));
+        await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
       } catch (_) {
         logger.shout('chat already loaded');
         return emit(ChatLoaded(
-          totalChats!,
-          needLoaded,
+          _totalChats,
+          _needLoaded,
           chats,
           lastMessages,
           unReadCount,
@@ -134,8 +160,8 @@ class ChatCubit extends Cubit<ChatState> {
       chats.addEntries(set);
 
       emit(ChatLoaded(
-        totalChats!,
-        needLoaded,
+        _totalChats,
+        _needLoaded,
         chats,
         lastMessages,
         unReadCount,
@@ -146,12 +172,12 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  Future<void> _setTotalChatCountIfNull() async {
-    if (totalChats == null) {
+  Future<void> _setTotalChatCountIfNull(t.ChatList chatListType) async {
+    if (_isTotalChatNull(chatListType)) {
       try {
         var chats = await tdlib.send<t.Chats>(t.GetChats(limit: 20));
-        totalChats = chats.total_count;
-        needLoaded = chats.total_count;
+        _totalChats[chatListType.runtimeType] = chats.total_count;
+        _needLoaded[chatListType.runtimeType] = chats.total_count;
       } on TelegramError catch (e) {
         if (e.code == 420 && e.message.contains('FLOOD_WAIT_')) {
           var waittime = int.tryParse(e.message.replaceAll("FLOOD_WAIT_", ""));
@@ -159,8 +185,8 @@ class ChatCubit extends Cubit<ChatState> {
             Duration(seconds: waittime ?? 0),
             () async => await tdlib.send<t.Chats>(t.GetChats(limit: 1)),
           );
-          totalChats = chats.total_count;
-          needLoaded = chats.total_count;
+          _totalChats[chatListType.runtimeType] = chats.total_count;
+          _needLoaded[chatListType.runtimeType] = chats.total_count;
         }
       }
     }
