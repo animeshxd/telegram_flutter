@@ -299,11 +299,16 @@ class _ChatScreenState extends State<ChatScreen> {
         "Channel name was changed to ${content.messageChatChangeTitle!.title}",
       t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
       // TODO: show who joined
-      t.MessagePinMessage => "has pinned this message",
+      t.MessagePinMessage => "{sender_id} has pinned this message",
+      t.MessageChatSetMessageAutoDeleteTime => "{sender_id} set messages to "
+          "${content.messageChatSetMessageAutoDeleteTime!.message_auto_delete_time} Seconds",
+      //TODO: 0 is disabled autodelete
       t.MessageContactRegistered => "{title} has joined Telegram",
-      t.MessageChatJoinByLink => "{someone} has joined by link",
+      t.MessageChatJoinByLink => "{sender_id} has joined by link",
       t.MessageChatJoinByRequest =>
-        "{someone}'s join request accepted by admin",
+        "{sender_id}'s join request accepted by admin",
+      t.MessageChatAddMembers => "{sender_id} joined chat / added users",
+      t.MessageChatDeleteMember => "{sender_id} removed user {user_id}",
       _ => null
     };
 
