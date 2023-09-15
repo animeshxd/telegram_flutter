@@ -26,6 +26,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, Chat>{}.obs;
+  final users = <int, t.User>{};
   var ignoredChats = <int>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
@@ -33,12 +34,13 @@ class ChatCubit extends Cubit<ChatState> {
   final unReadCount = <int, int>{}.obs;
 
   ChatLoaded get loadedState => ChatLoaded(
-        _totalChats,
-        _needLoaded,
-        chats,
-        ignoredChats,
-        lastMessages,
-        unReadCount,
+        totalChats: _totalChats,
+        needLoaded: _needLoaded,
+        chats: chats,
+        ignoredChats: ignoredChats,
+        lastMessages: lastMessages,
+        unReadCount: unReadCount,
+        users: users,
       );
 
   ChatCubit(this.tdlib) : super(ChatInitial()) {
@@ -125,6 +127,11 @@ class ChatCubit extends Cubit<ChatState> {
               (event) => event.basic_group.status.chatMemberStatusLeft != null)
           .map((event) => event.basic_group.id)
           .listen(ignoredChats.add),
+
+      tdlib.updates
+          .whereType<t.UpdateUser>()
+          .listen((user) => users[user.user.id] = user.user),
+
     ]);
   }
 

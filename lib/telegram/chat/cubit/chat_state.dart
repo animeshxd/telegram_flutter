@@ -15,18 +15,20 @@ final class ChatLoaded extends ChatState {
   final Map<Type, int?> totalChats;
   final Map<Type, int> needLoaded;
   final RxMap<int, Chat> chats;
+  final Map<int, t.User> users;
   final RxMap<int, t.UpdateChatLastMessage> lastMessages;
   final RxMap<int, int> unReadCount;
   final RxSet<int> ignoredChats;
 
-  const ChatLoaded(
-    this.totalChats,
-    this.needLoaded,
-    this.chats,
-    this.ignoredChats,
-    this.lastMessages,
-    this.unReadCount,
-  );
+  const ChatLoaded({
+    required this.totalChats,
+    required this.needLoaded,
+    required this.chats,
+    required this.ignoredChats,
+    required this.users,
+    required this.lastMessages,
+    required this.unReadCount,
+  });
 
   @override
   List<Object> get props => [
