@@ -67,7 +67,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
 
                 return Obx(() {
-                  var chats = state.chats.entries.map((e) => e.value).toList();
+                  var chats = state.chats.entries
+                      .where((e) => _whereChatIsNotInteracted(e.value, state))
+                      .map((e) => e.value)
+                      .toList();
                   _sortChatsByPosition(chats);
                   return ListView.builder(
                     addAutomaticKeepAlives: false,
@@ -117,6 +120,16 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  bool _whereChatIsNotInteracted(Chat c, ChatLoaded state) {
+    var type = c.type;
+    var id = type.chatTypeBasicGroup?.basic_group_id ??
+        type.chatTypePrivate?.user_id ??
+        type.chatTypeSecret?.secret_chat_id ??
+        type.chatTypeSupergroup?.supergroup_id;
+    if (id == null) return false;
+    return !state.ignoredChats.contains(id);
   }
 
   void _sortChatsByPosition(List<Chat> chats) {

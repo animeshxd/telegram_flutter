@@ -26,10 +26,20 @@ class ChatCubit extends Cubit<ChatState> {
 
   final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, Chat>{}.obs;
+  var ignoredChats = <int>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
 
   final unReadCount = <int, int>{}.obs;
+
+  ChatLoaded get loadedState => ChatLoaded(
+        _totalChats,
+        _needLoaded,
+        chats,
+        ignoredChats,
+        lastMessages,
+        unReadCount,
+      );
 
   ChatCubit(this.tdlib) : super(ChatInitial()) {
     _streamSubscriptions.addAll([
@@ -101,6 +111,20 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateChatReadInbox>()
           .listen((event) => unReadCount[event.chat_id] = event.unread_count),
+
+      tdlib.updates
+          .whereType<t.UpdateSupergroup>()
+          .where(
+              (event) => event.supergroup.status.chatMemberStatusLeft != null)
+          .map((event) => event.supergroup.id)
+          .listen(ignoredChats.add),
+
+      tdlib.updates
+          .whereType<t.UpdateBasicGroup>()
+          .where(
+              (event) => event.basic_group.status.chatMemberStatusLeft != null)
+          .map((event) => event.basic_group.id)
+          .listen(ignoredChats.add),
     ]);
   }
 
@@ -124,13 +148,7 @@ class ChatCubit extends Cubit<ChatState> {
       if (_isTotalChatNull(chatListType)) emit(ChatLoadedFailed());
       var needLoaded = _totalChats[chatListType.runtimeType]!;
       if (needLoaded == 0) {
-        return emit(ChatLoaded(
-          _totalChats,
-          _needLoaded,
-          chats,
-          lastMessages,
-          unReadCount,
-        ));
+        return emit(loadedState);
       }
       int limit = 10;
       if (needLoaded < limit) {
@@ -141,13 +159,7 @@ class ChatCubit extends Cubit<ChatState> {
         await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
       } catch (_) {
         logger.shout('chat already loaded');
-        return emit(ChatLoaded(
-          _totalChats,
-          _needLoaded,
-          chats,
-          lastMessages,
-          unReadCount,
-        ));
+        return emit(loadedState);
       }
 
       var set = await tdlib.updates
@@ -159,13 +171,7 @@ class ChatCubit extends Cubit<ChatState> {
           .toList();
       chats.addEntries(set);
 
-      emit(ChatLoaded(
-        _totalChats,
-        _needLoaded,
-        chats,
-        lastMessages,
-        unReadCount,
-      ));
+      emit(loadedState);
     } on Exception catch (e) {
       debugPrint(e.toString());
       emit(ChatLoadedFailed());

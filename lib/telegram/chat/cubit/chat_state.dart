@@ -17,11 +17,13 @@ final class ChatLoaded extends ChatState {
   final RxMap<int, Chat> chats;
   final RxMap<int, t.UpdateChatLastMessage> lastMessages;
   final RxMap<int, int> unReadCount;
+  final RxSet<int> ignoredChats;
 
   const ChatLoaded(
     this.totalChats,
     this.needLoaded,
     this.chats,
+    this.ignoredChats,
     this.lastMessages,
     this.unReadCount,
   );
@@ -31,6 +33,7 @@ final class ChatLoaded extends ChatState {
         totalChats,
         needLoaded,
         chats.length,
+        ignoredChats.length,
         lastMessages.length,
         unReadCount.length,
       ];
