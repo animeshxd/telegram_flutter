@@ -14,8 +14,9 @@ import '../../auth/bloc/auth_bloc.dart';
 
 class ChatScreen extends StatefulWidget {
   final AuthStateCurrentAccountReady? state;
-  const ChatScreen({super.key, this.state});
+  const ChatScreen({super.key, this.state, this.chatListType});
   static const path = '/chat';
+  final t.ChatList? chatListType;
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -23,10 +24,11 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   late final TdlibEventController tdlib;
   late final DownloadProfilePhoto profilePhotoController;
+  t.ChatList get chatListType => widget.chatListType ?? t.ChatListMain();
   @override
   void initState() {
     super.initState();
-    context.read<ChatCubit>().loadChats(t.ChatListArchive());
+    context.read<ChatCubit>().loadChats(chatListType);
     tdlib = context.read<TdlibEventController>();
     profilePhotoController = DownloadProfilePhoto(tdlib);
     // TODO: move to main.dart
@@ -105,19 +107,20 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sortChatsByPosition(List<Chat> chats) {
     chats.sort((a, b) {
       var b0 = b.positions
-              .where((position) => position.list.chatListMain != null)
-              .map((e) => e.is_pinned ? -1 : int.parse(e.order))
-              .firstOrNull ??
-          0;
-      var a0 = a.positions
-              .where((position) => position.list.chatListMain != null)
-              .map((e) => e.is_pinned ? -1 : int.parse(e.order))
-              .firstOrNull ??
-          0;
-      if (b0 == -1) return 1;
-      if (a0 == -1) return -1;
+          .where((p) => p.list.runtimeType == chatListType.runtimeType);
 
-      return b0.compareTo(a0);
+      var a0 = a.positions
+          .where((p) => p.list.runtimeType == chatListType.runtimeType);
+      var bIsPinned = b0.any((p) => p.is_pinned);
+      var aIsPinned = a0.any((p) => p.is_pinned);
+
+      if (bIsPinned) return 1;
+      if (aIsPinned) return -1;
+
+      var b1 = b0.map((e) => e.order).map(int.parse).firstOrNull ?? 0;
+      var a1 = a0.map((e) => e.order).map(int.parse).firstOrNull ?? 0;
+
+      return b1.compareTo(a1);
     });
   }
 }
