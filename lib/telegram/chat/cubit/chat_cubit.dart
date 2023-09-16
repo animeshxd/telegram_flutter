@@ -164,21 +164,12 @@ class ChatCubit extends Cubit<ChatState> {
 
       try {
         await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
+        emit(loadedState);
       } catch (_) {
         logger.shout('chat already loaded');
         return emit(loadedState);
       }
-
-      var set = await tdlib.updates
-          .whereType<t.UpdateNewChat>()
-          .map((event) => event.chat)
-          .map((chat) => MapEntry(chat.id, chat.mod))
-          .take(limit)
-          .timeout(const Duration(seconds: 5), onTimeout: (sink) {})
-          .toList();
-      chats.addEntries(set);
-
-      emit(loadedState);
+      
     } on Exception catch (e) {
       debugPrint(e.toString());
       emit(ChatLoadedFailed());
