@@ -188,7 +188,7 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> _setTotalChatCountIfNull(t.ChatList chatListType) async {
     if (_isTotalChatNull(chatListType)) {
       try {
-        var chats = await tdlib.send<t.Chats>(t.GetChats(limit: 20));
+        var chats = await tdlib.send<t.Chats>(t.GetChats(limit: 20, chat_list: chatListType));
         _totalChats[chatListType.runtimeType] = chats.total_count;
         _needLoaded[chatListType.runtimeType] = chats.total_count;
       } on TelegramError catch (e) {
