@@ -26,7 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatCubit>().loadChats(t.ChatListMain());
+    context.read<ChatCubit>().loadChats(t.ChatListArchive());
     tdlib = context.read<TdlibEventController>();
     profilePhotoController = DownloadProfilePhoto(tdlib);
     // TODO: move to main.dart
@@ -41,82 +41,51 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) =>
-          current is! AuthStateCurrentAccountReady,
-      listener: (context, state) => state.doRoute(context),
-      child: Scaffold(
-        appBar: AppBar(title: const Text("Telegram")),
-        drawer: Drawer(
-          child: ListView(
-            children: const [DrawerHeader(child: Text(''))],
+    return RepositoryProvider.value(
+      value: profilePhotoController,
+      child: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) =>
+            current is! AuthStateCurrentAccountReady,
+        listener: (context, state) => state.doRoute(context),
+        child: Scaffold(
+          appBar: AppBar(title: const Text("Telegram")),
+          drawer: Drawer(
+            child: ListView(
+              children: const [DrawerHeader(child: Text(''))],
+            ),
           ),
-        ),
-        body: Center(
-          child: BlocBuilder<ChatCubit, ChatState>(
-            builder: (context, state) {
-              if (state is ChatLoadedFailed) {
-                return Text(
-                  "Error",
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                );
-              }
+          body: Center(
+            child: BlocBuilder<ChatCubit, ChatState>(
+              builder: (context, state) {
+                if (state is ChatLoadedFailed) {
+                  return ErrorWidget.withDetails(message: "ChatLoadedFailed");
+                }
 
-              if (state is ChatLoaded) {
-                // .where((element) => element.title.isNotEmpty)
-                // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
+                if (state is ChatLoaded) {
+                  // .where((element) => element.title.isNotEmpty)
+                  // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
 
-                return Obx(() {
-                  var chats = state.chats.entries
-                      .where((e) => _whereChatIsNotInteracted(e.value, state))
-                      .map((e) => e.value)
-                      .toList();
-                  _sortChatsByPosition(chats);
-                  return ListView.builder(
-                    addAutomaticKeepAlives: false,
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      var chat = chats[index];
-                      profilePhotoController.downloadFile(chat.photo?.small);
-                      //TODO: make listtile serarate stateless widget
-                      return ListTile(
-                        //TODO: add better download small photo with retry
-                        leading: leading(chat, state),
-                        title: FutureBuilder(
-                          initialData: const SizedBox.shrink(),
-                          future: titleW(chat, state),
-                          builder: (context, snapshot) => snapshot.data!,
-                        ),
-                        subtitle: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Obx(
-                            () =>
-                                subtitle(
-                                  state.lastMessages[chat.id]?.last_message,
-                                ) ??
-                                const SizedBox.shrink(),
-                          ),
-                        ),
-                        onTap: () => debugPrint(
-                          'message: ${state.lastMessages[chat.id]?.toJsonEncoded()}'
-                          '\nchat: $chat',
-                        ),
-                        //TODO: update realtime unread_count
-                        trailing: Obx(() {
-                          var count = state.unReadCount[chat.id];
-                          if (count == null || count == 0) {
-                            return const SizedBox.shrink();
-                          }
-                          return Text(count.toString());
-                        }),
-                      );
-                    },
-                  );
-                });
-              }
+                  return Obx(() {
+                    var chats = state.chats.entries
+                        .where((e) => _whereChatIsNotInteracted(e.value, state))
+                        .map((e) => e.value)
+                        .toList();
+                    _sortChatsByPosition(chats);
+                    return ListView.builder(
+                      addAutomaticKeepAlives: false,
+                      itemCount: chats.length,
+                      itemBuilder: (context, index) {
+                        var chat = chats[index];
+                        profilePhotoController.downloadFile(chat.photo?.small);
+                        return ChatListTile(chat: chat, state: state);
+                      },
+                    );
+                  });
+                }
 
-              return const CircularProgressIndicator();
-            },
+                return const CircularProgressIndicator();
+              },
+            ),
           ),
         ),
       ),
@@ -151,8 +120,64 @@ class _ChatScreenState extends State<ChatScreen> {
       return b0.compareTo(a0);
     });
   }
+}
 
-  Future<Widget?> titleW(Chat chat, ChatLoaded state) async {
+class ChatListTile extends StatefulWidget {
+  const ChatListTile({
+    super.key,
+    required this.chat,
+    required this.state,
+  });
+  final Chat chat;
+  final ChatLoaded state;
+
+  @override
+  State<ChatListTile> createState() => _ChatListTileState();
+}
+
+class _ChatListTileState extends State<ChatListTile> {
+  late final TdlibEventController _tdlib;
+  late final DownloadProfilePhoto _downloadProfilePhoto;
+
+  @override
+  void initState() {
+    super.initState();
+    _tdlib = context.read();
+    _downloadProfilePhoto = context.read();
+  }
+
+  Chat get chat => widget.chat;
+  ChatLoaded get state => widget.state;
+
+  @override
+  Widget build(context) {
+    return ListTile(
+      //TODO: add better download small photo with retry
+      leading: leading(),
+      title: FutureBuilder(
+        initialData: const SizedBox.shrink(),
+        future: titleW(),
+        builder: (_, snapshot) => snapshot.data!,
+      ),
+      subtitle: Align(
+        alignment: Alignment.centerLeft,
+        child: ObxValue(
+          (data) => subtitle(data[chat.id]?.last_message),
+          state.lastMessages,
+        ),
+      ),
+      trailing: Obx(() {
+        //TODO: update realtime unread_count
+        var count = state.unReadCount[chat.id];
+        if (count == null || count == 0) {
+          return const SizedBox.shrink();
+        }
+        return Text(count.toString());
+      }),
+    );
+  }
+
+  Future<Widget> titleW() async {
     var title = chat.title;
     var icon = switch (chat.type.runtimeType) {
       t.ChatTypeBasicGroup => Icons.group,
@@ -166,7 +191,7 @@ class _ChatScreenState extends State<ChatScreen> {
     //TODO: also check if current logged in user is bot or not
     if (chat.type is t.ChatTypePrivate) {
       var user = state.users[chat.type.chatTypePrivate!.user_id];
-      user ??= await tdlib.send<t.User>(t.GetUser(user_id: chat.id));
+      user ??= await _tdlib.send<t.User>(t.GetUser(user_id: chat.id));
       // TODO: Fix for bot
 
       if (user.type is t.UserTypeDeleted) {
@@ -218,10 +243,10 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       );
     }
-    return null;
+    return const SizedBox.shrink();
   }
 
-  Widget leading(Chat chat, ChatLoaded state) {
+  Widget leading() {
     var photo = chat.photo?.small;
     if (photo == null) {
       return Obx(() {
@@ -240,7 +265,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Obx(
       () {
-        var data = profilePhotoController.state[photo.id];
+        var data = _downloadProfilePhoto.state[photo.id];
         var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
         return avatarW(data) ??
             avatar ??
@@ -296,8 +321,8 @@ class _ChatScreenState extends State<ChatScreen> {
     return CircleAvatar(backgroundImage: FileImage(file));
   }
 
-  Widget? subtitle(t.Message? message) {
-    if (message == null) return null;
+  Widget subtitle(t.Message? message) {
+    if (message == null) return const SizedBox.shrink();
     var content = message.content;
     String? caption = switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
@@ -353,6 +378,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       );
     }
-    return null;
+    return const SizedBox.shrink();
   }
 }
