@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class EllipsisText extends Text {
-  const EllipsisText.rich(super.textSpan, {super.key});
+  const EllipsisText.rich(super.textSpan, {super.key, this.removeNewLine = false});
+  final bool removeNewLine;
 
-  const EllipsisText(String text, {super.key})
+  EllipsisText(String text, {super.key, this.removeNewLine = false})
       : super(
-          text,
+          removeNewLine? text : text.replaceAll('\n', ''),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         );

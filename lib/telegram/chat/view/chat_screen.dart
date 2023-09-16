@@ -374,7 +374,7 @@ class _ChatListTileState extends State<ChatListTile> {
               child: Icon(icon, size: 17),
             ),
           if (caption != null)
-            Expanded(child: EllipsisText(caption.replaceAll("\n", " ")))
+            Expanded(child: EllipsisText(caption, removeNewLine: true,))
         ],
       );
     }
