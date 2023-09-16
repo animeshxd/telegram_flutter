@@ -15,7 +15,7 @@ final class ChatLoaded extends ChatState {
   final Map<Type, int?> totalChats;
   final Map<Type, int> needLoaded;
   final RxMap<int, Chat> chats;
-  final Map<int, t.User> users;
+  final RxMap<int, t.User> users;
   final RxMap<int, t.UpdateChatLastMessage> lastMessages;
   final RxMap<int, int> unReadCount;
   final RxSet<int> ignoredChats;

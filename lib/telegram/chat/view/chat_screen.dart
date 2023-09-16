@@ -78,12 +78,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemBuilder: (context, index) {
                       var chat = chats[index];
                       profilePhotoController.downloadFile(chat.photo?.small);
+                      //TODO: make listtile serarate stateless widget
                       return ListTile(
                         //TODO: add better download small photo with retry
-                        leading: leading(chat),
+                        leading: leading(chat, state),
                         title: FutureBuilder(
                           initialData: const SizedBox.shrink(),
-                          future: titleW(chat),
+                          future: titleW(chat, state),
                           builder: (context, snapshot) => snapshot.data!,
                         ),
                         subtitle: Align(
@@ -151,7 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<Widget?> titleW(Chat chat) async {
+  Future<Widget?> titleW(Chat chat, ChatLoaded state) async {
     var title = chat.title;
     var icon = switch (chat.type.runtimeType) {
       t.ChatTypeBasicGroup => Icons.group,
@@ -164,7 +165,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     //TODO: also check if current logged in user is bot or not
     if (chat.type is t.ChatTypePrivate) {
-      var user = await tdlib.send<t.User>(t.GetUser(user_id: chat.id));
+      var user = state.users[chat.type.chatTypePrivate!.user_id];
+      user ??= await tdlib.send<t.User>(t.GetUser(user_id: chat.id));
       // TODO: Fix for bot
 
       if (user.type is t.UserTypeDeleted) {
@@ -219,10 +221,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return null;
   }
 
-  Widget leading(Chat chat) {
+  Widget leading(Chat chat, ChatLoaded state) {
     var photo = chat.photo?.small;
     if (photo == null) {
-      return _getColorAvater(chat.id, chat.title);
+      return Obx(() {
+        var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
+        return _getColorAvater(chat, chat.title, user);
+      });
     }
 
     Widget? avatar = avatarW(photo.local.path);
@@ -233,16 +238,18 @@ class _ChatScreenState extends State<ChatScreen> {
       avatar = CircleAvatar(backgroundImage: MemoryImage(imageSource));
     }
 
-    return ObxValue<RxMap<int, String>>(
-      (data) =>
-          avatarW(data[photo.id]) ??
-          avatar ??
-          _getColorAvater(chat.id, chat.title),
-      profilePhotoController.state,
+    return Obx(
+      () {
+        var data = profilePhotoController.state[photo.id];
+        var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
+        return avatarW(data) ??
+            avatar ??
+            _getColorAvater(chat, chat.title, user);
+      },
     );
   }
 
-  Widget _getColorAvater(int id, String title) {
+  Widget _getColorAvater(Chat chat, String title, t.User? user) {
     List<Color> colors = const [
       Colors.red,
       Colors.green,
@@ -253,7 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
       Colors.grey,
       Colors.deepPurpleAccent
     ];
-    id = int.parse(id.toString().replaceAll("-100", ""));
+    var id = int.parse(chat.id.toString().replaceAll("-100", ""));
     var color = colors[[0, 7, 4, 1, 6, 3, 5][(id % 7)]];
     var shortTitle = title
         .split(" ")
@@ -261,6 +268,14 @@ class _ChatScreenState extends State<ChatScreen> {
         .take(2)
         .map((e) => e[0])
         .join();
+    if (shortTitle.isEmpty && user != null) {
+      //TODO: return furure builder
+      return CircleAvatar(
+        backgroundColor: color,
+        child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
+      );
+    }
+
     return CircleAvatar(
       backgroundColor: color,
       child: Text(

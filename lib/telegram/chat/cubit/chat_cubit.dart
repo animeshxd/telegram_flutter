@@ -26,7 +26,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, Chat>{}.obs;
-  final users = <int, t.User>{};
+  final users = <int, t.User>{}.obs;
   var ignoredChats = <int>{}.obs;
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
