@@ -70,7 +70,7 @@ class ChatCubit extends Cubit<ChatState> {
 
       tdlib.updates
           .whereType<t.UpdateChatLastMessage>()
-          .where((event) => event.last_message != null)
+          // .where((event) => event.last_message != null)
           .listen((event) {
         if (!chats.containsKey(event.chat_id)) {
           _updateNeedLoaded(event.positions);
