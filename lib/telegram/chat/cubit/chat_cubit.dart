@@ -131,7 +131,6 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateUser>()
           .listen((user) => users[user.user.id] = user.user),
-
     ]);
   }
 
@@ -169,7 +168,6 @@ class ChatCubit extends Cubit<ChatState> {
         logger.shout('chat already loaded');
         return emit(loadedState);
       }
-      
     } on Exception catch (e) {
       debugPrint(e.toString());
       emit(ChatLoadedFailed());
@@ -179,7 +177,10 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> _setTotalChatCountIfNull(t.ChatList chatListType) async {
     if (_isTotalChatNull(chatListType)) {
       try {
-        var chats = await tdlib.send<t.Chats>(t.GetChats(limit: 20, chat_list: chatListType));
+        var chats = await tdlib.send<t.Chats>(t.GetChats(
+          limit: 20,
+          chat_list: chatListType,
+        ));
         _totalChats[chatListType.runtimeType] = chats.total_count;
         _needLoaded[chatListType.runtimeType] = chats.total_count;
       } on TelegramError catch (e) {
