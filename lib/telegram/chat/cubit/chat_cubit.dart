@@ -42,6 +42,35 @@ class ChatCubit extends Cubit<ChatState> {
         unReadCount: unReadCount,
         users: users,
       );
+  void _updateChat({
+    required int id,
+    required List<t.ChatPosition> positions,
+    t.Chat? chat,
+  }) {
+    chats.update(
+      id,
+      (value) {
+        var map = Map.fromEntries(
+          value.positions.map((e) => MapEntry(e.list.runtimeType, e)),
+        );
+        for (var e in positions) {
+          map[e.list.runtimeType] = e;
+        }
+        if (chat != null) value = chat.mod;
+        value.positions = map.values.toList();
+        return value;
+      },
+      ifAbsent: () =>
+          chat?.mod ??
+          Chat(
+            title: '',
+            id: id,
+            positions: positions,
+            type: ChatTypeUnknown(),
+            photo: null,
+          ),
+    );
+  }
 
   ChatCubit(this.tdlib) : super(ChatInitial()) {
     _streamSubscriptions.addAll([
@@ -51,7 +80,7 @@ class ChatCubit extends Cubit<ChatState> {
           .listen(
         (chat) {
           _updateNeedLoaded(chat.positions);
-          chats[chat.id] = chat.mod;
+          _updateChat(id: chat.id, positions: chat.positions, chat: chat);
           unReadCount[chat.id] = chat.unread_count;
           lastMessages.update(
             chat.id,
@@ -90,23 +119,9 @@ class ChatCubit extends Cubit<ChatState> {
       // tdlib.updates.listen(print)
 
       tdlib.updates.whereType<t.UpdateChatPosition>().listen(
-            (event) => chats.update(
-              event.chat_id,
-              (value) {
-                value.positions.removeWhere(
-                  (element) =>
-                      element.runtimeType == event.position.runtimeType,
-                );
-                value.positions.add(event.position);
-                return value;
-              },
-              ifAbsent: () => Chat(
-                title: '',
-                id: event.chat_id,
-                positions: [event.position],
-                type: ChatTypeUnknown(),
-                photo: null,
-              ),
+            (event) => _updateChat(
+              id: event.chat_id,
+              positions: [event.position],
             ),
           ),
 
@@ -188,7 +203,9 @@ class ChatCubit extends Cubit<ChatState> {
           var waittime = int.tryParse(e.message.replaceAll("FLOOD_WAIT_", ""));
           var chats = await Future.delayed(
             Duration(seconds: waittime ?? 0),
-            () async => await tdlib.send<t.Chats>(t.GetChats(limit: 1)),
+            () async => await tdlib.send<t.Chats>(
+              t.GetChats(limit: 1, chat_list: chatListType),
+            ),
           );
           _totalChats[chatListType.runtimeType] = chats.total_count;
           _needLoaded[chatListType.runtimeType] = chats.total_count;
