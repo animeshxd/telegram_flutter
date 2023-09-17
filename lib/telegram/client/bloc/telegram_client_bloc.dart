@@ -35,8 +35,8 @@ class TelegramClientBloc
         }
         await client.start();
         initilized = true;
-        emit(ClientInitilizedState());
       }
+      emit(ClientInitilizedState());
     });
   }
 
@@ -57,7 +57,7 @@ class TelegramClientBloc
   @override
   void onChange(Change<TelegramClientState> change) {
     super.onChange(change);
-    debugPrint(change.currentState.toString());
+    debugPrint(change.toString());
   }
 }
 
