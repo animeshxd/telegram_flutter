@@ -63,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   return Obx(() {
                     var chats = state.chats.entries
                         .where((e) => _whereChatIsNotInteracted(e.value, state))
+                        .where(_whereChatHasCurrentChatListType)
                         .map((e) => e.value)
                         .toList();
                     _sortChatsByPosition(chats);
@@ -85,6 +86,11 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  bool _whereChatHasCurrentChatListType(MapEntry<int, Chat> e) {
+    return e.value.positions
+        .any((element) => element.list.runtimeType == chatListType.runtimeType);
   }
 
   bool _whereChatIsNotInteracted(Chat c, ChatLoaded state) {
