@@ -79,7 +79,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemBuilder: (context, index) {
                         var chat = chats[index];
                         profilePhotoController.downloadFile(chat.photo?.small);
-                        return ChatListTile(chat: chat, state: state);
+                        return ChatListTile(
+                          chat: chat,
+                          state: state,
+                          chatListType: chatListType,
+                        );
                       },
                     );
                   });

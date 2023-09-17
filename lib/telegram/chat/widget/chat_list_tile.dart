@@ -17,9 +17,11 @@ class ChatListTile extends StatefulWidget {
     super.key,
     required this.chat,
     required this.state,
+    required this.chatListType,
   });
   final Chat chat;
   final ChatLoaded state;
+  final t.ChatList chatListType;
 
   @override
   State<ChatListTile> createState() => _ChatListTileState();
@@ -56,16 +58,32 @@ class _ChatListTileState extends State<ChatListTile> {
           state.lastMessages,
         ),
       ),
-      trailing: Obx(() {
-        //TODO: update realtime unread_count
-        var count = state.unReadCount[chat.id];
-        if (count == null || count == 0) {
-          return const SizedBox.shrink();
-        }
-        return Text(count.toString());
-      }),
+      trailing: trailing,
     );
   }
+  Widget get trailing => Obx(() {
+        var count = state.unReadCount[chat.id];
+        if (count == null || count == 0) {
+          var isPinned = chat.positions
+              .where((element) =>
+                  element.list.runtimeType == widget.chatListType.runtimeType)
+              .any((element) => element.is_pinned);
+          if (isPinned) {
+            return Transform.rotate(
+              angle: 1,
+              child: const Icon(
+                Icons.push_pin,
+                size: 16,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+        return Badge(
+          label: Text(count.toString()),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        );
+      });
 
   Future<Widget> titleW() async {
     var title = chat.title;

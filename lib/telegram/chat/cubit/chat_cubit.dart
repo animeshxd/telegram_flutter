@@ -106,11 +106,6 @@ class ChatCubit extends Cubit<ChatState> {
         }
         lastMessages[event.chat_id] = event;
         if (event.last_message?.is_outgoing ?? false) return;
-        unReadCount.update(
-          event.chat_id,
-          (value) => value + 1,
-          ifAbsent: () => 0,
-        );
       }),
 
       tdlib.updates
