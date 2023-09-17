@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 import '../controller/download_profile_photo.dart';
@@ -43,7 +44,15 @@ class _ChatScreenState extends State<ChatScreen> {
             current is! AuthStateCurrentAccountReady,
         listener: (context, state) => state.doRoute(context),
         child: Scaffold(
-          appBar: AppBar(title: const Text("Telegram")),
+          appBar: AppBar(
+            title: const Text("Telegram"),
+            leading: context.canPop()
+                ? IconButton(
+                    onPressed: () => context.pop(),
+                    icon: Icon(Icons.adaptive.arrow_back),
+                  )
+                : null,
+          ),
           drawer: Drawer(
             child: ListView(
               children: const [DrawerHeader(child: Text(''))],
