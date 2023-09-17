@@ -14,7 +14,7 @@ import 'telegram/auth/login/bloc/login_bloc.dart';
 import 'telegram/auth/login/view/routes.dart';
 import 'telegram/auth/view/tdlib_init_failed_screen.dart';
 import 'telegram/chat/cubit/chat_cubit.dart';
-import 'telegram/chat/view/chat_screen.dart';
+import 'telegram/chat/view/routes.dart';
 import 'telegram/client/bloc/telegram_client_bloc.dart';
 import 'telegram/connection/cubit/connection_cubit.dart';
 
@@ -41,12 +41,7 @@ class MainApp extends StatelessWidget {
         path: LoadingPage.path,
         builder: (context, state) => const LoadingPage(),
       ),
-      GoRoute(
-        path: ChatScreen.path,
-        builder: (context, state) => ChatScreen(
-          state: state.extra as AuthStateCurrentAccountReady,
-        ),
-      ),
+      chatRoute,
       GoRoute(
         path: '/error_tdlib',
         builder: (context, state) => TdlibInitFailedPage(
