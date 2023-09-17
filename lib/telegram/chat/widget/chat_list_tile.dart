@@ -141,7 +141,7 @@ class _ChatListTileState extends State<ChatListTile> {
     if (photo == null) {
       return Obx(() {
         var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
-        return _getColorAvater(chat, chat.title, user);
+        return _getColorAvatar(chat, chat.title, user);
       });
     }
 
@@ -159,12 +159,18 @@ class _ChatListTileState extends State<ChatListTile> {
         var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
         return avatarW(data) ??
             avatar ??
-            _getColorAvater(chat, chat.title, user);
+            _getColorAvatar(chat, chat.title, user);
       },
     );
   }
 
-  Widget _getColorAvater(Chat chat, String title, t.User? user) {
+  Future<t.User> _getUser(int id) async {
+    var user = await _tdlib.send<t.User>(t.GetUser(user_id: id));
+    state.users[id] = user;
+    return user;
+  }
+
+  Widget _getColorAvatar(Chat chat, String title, t.User? user) {
     List<Color> colors = const [
       Colors.red,
       Colors.green,
@@ -175,20 +181,40 @@ class _ChatListTileState extends State<ChatListTile> {
       Colors.grey,
       Colors.deepPurpleAccent
     ];
-    var id = int.parse(chat.id.toString().replaceAll("-100", ""));
-    var color = colors[[0, 7, 4, 1, 6, 3, 5][(id % 7)]];
+    var id = chat.type.chatTypeBasicGroup?.basic_group_id ??
+        chat.type.chatTypePrivate?.user_id ??
+        chat.type.chatTypeSecret?.secret_chat_id ??
+        chat.type.chatTypeSecret?.user_id ??
+        chat.type.chatTypeSupergroup?.supergroup_id;
+    var color = colors[[0, 7, 4, 1, 6, 3, 5][(id! % 7)]];
     var shortTitle = title
         .split(" ")
         .where((element) => element.isNotEmpty)
         .take(2)
         .map((e) => e[0])
         .join();
-    if (shortTitle.isEmpty && user != null) {
-      //TODO: return furure builder
-      return CircleAvatar(
-        backgroundColor: color,
-        child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
-      );
+    if (shortTitle.isEmpty) {
+      if (user == null) {
+        return FutureBuilder(
+          future: _getUser(id),
+          builder: (context, snapshot) {
+            if (snapshot.data?.type.userTypeDeleted != null) {
+              return CircleAvatar(
+                backgroundColor: color,
+                child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
+              );
+            }
+            return CircleAvatar(backgroundColor: color, child: const Text("🫥"),);
+          },
+        );
+      }
+
+      if (user.type.userTypeDeleted != null) {
+        return CircleAvatar(
+          backgroundColor: color,
+          child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
+        );
+      }
     }
 
     return CircleAvatar(
