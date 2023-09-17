@@ -108,9 +108,10 @@ class ChatCubit extends Cubit<ChatState> {
         if (event.last_message?.is_outgoing ?? false) return;
       }),
 
-      tdlib.updates
-          .whereType<t.UpdateChatTitle>()
-          .listen((event) => chats[event.chat_id]?.title = event.title),
+      tdlib.updates.whereType<t.UpdateChatTitle>().listen((event) {
+        chats[event.chat_id]?.title = event.title;
+        chats.refresh();
+      }),
       // tdlib.updates.listen(print)
 
       tdlib.updates.whereType<t.UpdateChatPosition>().listen(
