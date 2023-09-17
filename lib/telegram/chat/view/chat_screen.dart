@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     var chats = state.chats.entries
                         .where((e) => _whereChatIsNotInteracted(e.value, state))
                         .where(_whereChatHasCurrentChatListType)
+                        .where(_whereChatIsNotMe)
                         .map((e) => e.value)
                         .toList();
                     _sortChatsByPosition(chats);
@@ -92,6 +93,9 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  bool _whereChatIsNotMe(MapEntry<int, Chat> e) =>
+      e.key != widget.state!.user.id;
 
   bool _whereChatHasCurrentChatListType(MapEntry<int, Chat> e) {
     return e.value.positions
