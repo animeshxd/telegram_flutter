@@ -10,6 +10,7 @@ import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import 'package:tdffi/td.dart' as t;
 
+import '../../../extensions/extensions.dart';
 import 'ellipsis_text.dart';
 
 class ChatListTile extends StatefulWidget {
@@ -54,7 +55,14 @@ class _ChatListTileState extends State<ChatListTile> {
       subtitle: Align(
         alignment: Alignment.centerLeft,
         child: ObxValue(
-          (data) => subtitle(data[chat.id]?.last_message),
+          (data) => FutureBuilder(
+            future: subtitle(data[chat.id]?.last_message),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.hasError)
+                return const SizedBox.shrink();
+              return snapshot.data!;
+            },
+          ),
           state.lastMessages,
         ),
       ),
@@ -183,6 +191,7 @@ class _ChatListTileState extends State<ChatListTile> {
   }
 
   Future<t.User> _getUser(int id) async {
+    if (state.users[id] != null) state.users[id];
     var user = await _tdlib.send<t.User>(t.GetUser(user_id: id));
     state.users[id] = user;
     return user;
@@ -255,9 +264,36 @@ class _ChatListTileState extends State<ChatListTile> {
     return CircleAvatar(backgroundImage: FileImage(file));
   }
 
-  Widget subtitle(t.Message? message) {
+  Future<Widget> subtitle(t.Message? message) async {
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
+
+    int? senderId;
+    t.User? sender;
+    String? senderName = '';
+    var senderRequired = chat.type.chatTypePrivate == null &&
+            (chat.type.chatTypeSupergroup?.is_channel ?? false) == false ||
+        message.content is t.MessageContactRegistered;
+    var seperator = switch (content.runtimeType) {
+      t.MessageContactRegistered ||
+      t.MessageGameScore ||
+      t.MessageChatJoinByLink ||
+      t.MessageChatJoinByRequest ||
+      t.MessageChatAddMembers ||
+      t.MessageChatDeleteMember =>
+        '',
+      _ => ':'
+    };
+
+    if (senderRequired) {
+      senderId = message.sender_id.messageSenderUser?.user_id;
+      sender = senderId != null ? await _getUser(senderId) : null;
+      senderName = sender?.fullName;
+    }
+
+    //TODO: 1. check game_message_id of MessageGameScore to get game title
+    //TODO: 2.
+
     String? caption = switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
       t.MessageDocument => content.messageDocument!.caption.text,
@@ -267,24 +303,33 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessagePoll => content.messagePoll!.poll.question,
       t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
       t.MessageGame => content.messageGame!.game.short_name,
-      t.MessageGameScore => "High Score: ${content.messageGameScore!.score}",
+      t.MessageGameScore => "scored ${content.messageGameScore!.score}",
       t.MessageSupergroupChatCreate => "Channel created",
+
+      // TODO: check is_channel or not for title
       t.MessageChatChangeTitle =>
         "Channel name was changed to ${content.messageChatChangeTitle!.title}",
       t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
       // TODO: show who joined
-      t.MessagePinMessage => "{sender_id} has pinned this message",
+      t.MessagePinMessage => "has pinned a message",
       t.MessageChatSetMessageAutoDeleteTime => "{sender_id} set messages to "
           "${content.messageChatSetMessageAutoDeleteTime!.message_auto_delete_time} Seconds",
       //TODO: 0 is disabled autodelete
-      t.MessageContactRegistered => "{title} has joined Telegram",
-      t.MessageChatJoinByLink => "{sender_id} has joined by link",
-      t.MessageChatJoinByRequest =>
-        "{sender_id}'s join request accepted by admin",
-      t.MessageChatAddMembers => "{sender_id} joined chat / added users",
-      t.MessageChatDeleteMember => "{sender_id} removed user {user_id}",
+      t.MessageContactRegistered => "has joined Telegram",
+      t.MessageChatJoinByLink => "has joined by link",
+      t.MessageChatJoinByRequest => "'s join request accepted by admin",
+      t.MessageChatAddMembers => "joined chat / added users",
+      t.MessageChatDeleteMember => "removed user {user_id}",
       _ => null
     };
+    if (senderRequired) {
+      caption = [
+        if (senderName != null) senderName,
+        if (seperator.isNotEmpty) seperator,
+        if (caption != null) caption,
+      ].join(' ');
+    }
+    if (caption?.isEmpty ?? true) caption = null;
 
     var icon = switch (content.runtimeType) {
       t.MessageAudio => Icons.audio_file,
@@ -308,7 +353,7 @@ class _ChatListTileState extends State<ChatListTile> {
               child: Icon(icon, size: 17),
             ),
           if (caption != null)
-            Expanded(child: EllipsisText(caption, removeNewLine: true))
+            Expanded(child: EllipsisText(caption.trim(), removeNewLine: true))
         ],
       );
     }
