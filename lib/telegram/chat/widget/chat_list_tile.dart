@@ -271,8 +271,6 @@ class _ChatListTileState extends State<ChatListTile> {
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
 
-    int? senderId;
-    t.User? sender;
     String senderName = '';
     var seperator = switch (content.runtimeType) {
       t.MessageContactRegistered ||
@@ -285,10 +283,21 @@ class _ChatListTileState extends State<ChatListTile> {
       _ => ' : '
     };
 
-    if (!message.is_outgoing) {
-      senderId = message.sender_id.messageSenderUser?.user_id;
-      sender = senderId != null ? await _getUser(senderId) : null;
-      senderName = sender?.fullName ?? '';
+    if (!message.is_outgoing &&
+        !(chat.type.chatTypeSupergroup?.is_channel ?? false)) {
+      try {
+        var senderUserId = message.sender_id.messageSenderUser?.user_id;
+        var senderChatId = message.sender_id.messageSenderChat?.chat_id;
+        var senderUser =
+            senderUserId != null ? await _getUser(senderUserId) : null;
+        var senderChat = senderChatId != null
+            ? await _tdlib.send<t.Chat>(t.GetChat(chat_id: senderChatId))
+            : null;
+
+        senderName = senderUser?.fullName ?? senderChat?.title ?? '';
+      } on TelegramError catch (e) {
+        if (e.code != 404) rethrow;
+      }
     } else {
       if (chat.type.chatTypeSupergroup?.is_channel ?? false) {
       } else {
