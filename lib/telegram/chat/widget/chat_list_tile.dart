@@ -31,6 +31,7 @@ class ChatListTile extends StatefulWidget {
 class _ChatListTileState extends State<ChatListTile> {
   late final TdlibEventController _tdlib;
   late final DownloadProfilePhoto _downloadProfilePhoto;
+  late TextStyle _textStyleBodySmall;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _ChatListTileState extends State<ChatListTile> {
 
   @override
   Widget build(context) {
+    _textStyleBodySmall = Theme.of(context).textTheme.bodySmall!;
     return ListTile(
       //TODO: add better download small photo with retry
       leading: leading(),
@@ -58,8 +60,9 @@ class _ChatListTileState extends State<ChatListTile> {
           (data) => FutureBuilder(
             future: subtitle(data[chat.id]?.last_message),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.hasError)
+              if (!snapshot.hasData || snapshot.hasError) {
                 return const SizedBox.shrink();
+              }
               return snapshot.data!;
             },
           ),
@@ -270,10 +273,7 @@ class _ChatListTileState extends State<ChatListTile> {
 
     int? senderId;
     t.User? sender;
-    String? senderName = '';
-    var senderRequired = chat.type.chatTypePrivate == null &&
-            (chat.type.chatTypeSupergroup?.is_channel ?? false) == false ||
-        message.content is t.MessageContactRegistered;
+    String senderName = '';
     var seperator = switch (content.runtimeType) {
       t.MessageContactRegistered ||
       t.MessageGameScore ||
@@ -281,18 +281,22 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageChatJoinByRequest ||
       t.MessageChatAddMembers ||
       t.MessageChatDeleteMember =>
-        '',
-      _ => ':'
+        ' ',
+      _ => ' : '
     };
 
-    if (senderRequired) {
+    if (!message.is_outgoing) {
       senderId = message.sender_id.messageSenderUser?.user_id;
       sender = senderId != null ? await _getUser(senderId) : null;
-      senderName = sender?.fullName;
+      senderName = sender?.fullName ?? '';
+    } else {
+      if (chat.type.chatTypeSupergroup?.is_channel ?? false) {
+      } else {
+        senderName = 'You';
+      }
     }
 
-    //TODO: 1. check game_message_id of MessageGameScore to get game title
-    //TODO: 2.
+    if (senderName.isEmpty) seperator = '';
 
     String? caption = switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
@@ -322,14 +326,20 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageChatDeleteMember => "removed user {user_id}",
       _ => null
     };
-    if (senderRequired) {
-      caption = [
-        if (senderName != null) senderName,
-        if (seperator.isNotEmpty) seperator,
-        if (caption != null) caption,
-      ].join(' ');
+
+    if (content is t.MessageGameScore) {
+      try {
+        var message = await _tdlib.send<t.Message>(
+          t.GetMessage(chat_id: chat.id, message_id: content.game_message_id),
+        );
+        var title = message.content.messageGame!.game.title;
+        caption = '${caption!} in $title';
+      } on TelegramError catch (e) {
+        if (e.code != 404) {
+          rethrow;
+        }
+      }
     }
-    if (caption?.isEmpty ?? true) caption = null;
 
     var icon = switch (content.runtimeType) {
       t.MessageAudio => Icons.audio_file,
@@ -353,7 +363,23 @@ class _ChatListTileState extends State<ChatListTile> {
               child: Icon(icon, size: 17),
             ),
           if (caption != null)
-            Expanded(child: EllipsisText(caption.trim(), removeNewLine: true))
+            Expanded(
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: _textStyleBodySmall,
+                  children: [
+                    if (senderName.isNotEmpty)
+                      TextSpan(
+                        text: senderName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    if (seperator.isNotEmpty) TextSpan(text: seperator),
+                    TextSpan(text: caption.trim().replaceAll('\n', '')),
+                  ],
+                ),
+              ),
+            )
         ],
       );
     }
