@@ -267,24 +267,45 @@ class _ChatListTileState extends State<ChatListTile> {
     return CircleAvatar(backgroundImage: FileImage(file));
   }
 
+  String _getDocumentCaption(t.MessageContent content) {
+    if (content is! t.MessageDocument) return '';
+
+    var caption = content.caption.text;
+    if (caption.isEmpty) caption = content.document.file_name;
+
+    return caption;
+  }
+
   Future<Widget> subtitle(t.Message? message) async {
+    //TODO: show removed/added user name
+    //TODO: Show album caption, resolve album
+    //TODO: Separator Caption only
+    //TODO: Fix autodelete timer caption
+    //TODO: Show text format based on FormattedText
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
 
     String senderName = '';
-    var seperator = switch (content.runtimeType) {
+    var isChatActions = switch (content.runtimeType) {
       t.MessageContactRegistered ||
       t.MessageGameScore ||
       t.MessageChatJoinByLink ||
       t.MessageChatJoinByRequest ||
       t.MessageChatAddMembers ||
-      t.MessageChatDeleteMember =>
-        ' ',
-      _ => ' : '
+      t.MessageChatDeleteMember ||
+      t.MessageGame ||
+      t.MessageGameScore ||
+      t.MessageChatChangeTitle ||
+      t.MessageChatSetMessageAutoDeleteTime =>
+        true,
+      _ => false
     };
+    var isChannel = (chat.type.chatTypeSupergroup?.is_channel ?? false);
+    var isPrivate = (chat.type.chatTypePrivate != null);
+    var senderRequired = !message.is_outgoing && !(isChannel || isPrivate) ||
+        content.messageContactRegistered != null;
 
-    if (!message.is_outgoing &&
-        !(chat.type.chatTypeSupergroup?.is_channel ?? false)) {
+    if (senderRequired) {
       try {
         var senderUserId = message.sender_id.messageSenderUser?.user_id;
         var senderChatId = message.sender_id.messageSenderChat?.chat_id;
@@ -298,18 +319,12 @@ class _ChatListTileState extends State<ChatListTile> {
       } on TelegramError catch (e) {
         if (e.code != 404) rethrow;
       }
-    } else {
-      if (chat.type.chatTypeSupergroup?.is_channel ?? false) {
-      } else {
-        senderName = 'You';
-      }
     }
-
-    if (senderName.isEmpty) seperator = '';
+    if (message.is_outgoing && isChatActions) senderName = 'You';
 
     String? caption = switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
-      t.MessageDocument => content.messageDocument!.caption.text,
+      t.MessageDocument => _getDocumentCaption(content),
       t.MessageVideo => content.messageVideo!.caption.text,
       t.MessagePhoto => content.messagePhoto!.caption.text,
       t.MessageText => content.messageText!.text.text,
@@ -318,23 +333,27 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageGame => content.messageGame!.game.short_name,
       t.MessageGameScore => "scored ${content.messageGameScore!.score}",
       t.MessageSupergroupChatCreate => "Channel created",
-
-      // TODO: check is_channel or not for title
-      t.MessageChatChangeTitle =>
-        "Channel name was changed to ${content.messageChatChangeTitle!.title}",
+      t.MessageChatChangeTitle => content.messageChatChangeTitle!.title,
       t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
-      // TODO: show who joined
       t.MessagePinMessage => "has pinned a message",
-      t.MessageChatSetMessageAutoDeleteTime => "{sender_id} set messages to "
+      t.MessageChatSetMessageAutoDeleteTime => "set messages to "
           "${content.messageChatSetMessageAutoDeleteTime!.message_auto_delete_time} Seconds",
       //TODO: 0 is disabled autodelete
       t.MessageContactRegistered => "has joined Telegram",
-      t.MessageChatJoinByLink => "has joined by link",
+      t.MessageChatJoinByLink => "has joined the chat via invite link",
       t.MessageChatJoinByRequest => "'s join request accepted by admin",
       t.MessageChatAddMembers => "joined chat / added users",
       t.MessageChatDeleteMember => "removed user {user_id}",
       _ => null
     };
+
+    if (content is t.MessageChatChangeTitle) {
+      if (isChannel) {
+        caption = "Channel name was changed to «$caption»";
+      } else {
+        caption = "changed group name to «$caption»";
+      }
+    }
 
     if (content is t.MessageGameScore) {
       try {
@@ -383,7 +402,8 @@ class _ChatListTileState extends State<ChatListTile> {
                         text: senderName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    if (seperator.isNotEmpty) TextSpan(text: seperator),
+                    if (senderName.isNotEmpty)
+                      TextSpan(text: isChatActions ? ' ' : " : "),
                     TextSpan(text: caption.trim().replaceAll('\n', '')),
                   ],
                 ),
