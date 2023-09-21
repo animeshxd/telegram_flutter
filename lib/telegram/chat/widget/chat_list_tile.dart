@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:humanizer/humanizer.dart';
 import 'package:tdffi/client.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
@@ -276,11 +277,21 @@ class _ChatListTileState extends State<ChatListTile> {
     return caption;
   }
 
+  String _getMessageChatSetMessageAutoDeleteTimeCaption(
+      t.MessageContent content) {
+    if (content is! t.MessageChatSetMessageAutoDeleteTime) return '';
+    var time = Duration(seconds: content.message_auto_delete_time);
+    if (time.inSeconds == 0) {
+      return "disabled the auto-delete timer";
+    } else {
+      return "set messages to auto-delete in ${time.toApproximateTime(isRelativeToNow: false)}";
+    }
+  }
+
   Future<Widget> subtitle(t.Message? message) async {
     //TODO: show removed/added user name
     //TODO: Show album caption, resolve album
     //TODO: Separator Caption only
-    //TODO: Fix autodelete timer caption
     //TODO: Show text format based on FormattedText
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
@@ -336,8 +347,8 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageChatChangeTitle => content.messageChatChangeTitle!.title,
       t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
       t.MessagePinMessage => "has pinned a message",
-      t.MessageChatSetMessageAutoDeleteTime => "set messages to "
-          "${content.messageChatSetMessageAutoDeleteTime!.message_auto_delete_time} Seconds",
+      t.MessageChatSetMessageAutoDeleteTime =>
+        _getMessageChatSetMessageAutoDeleteTimeCaption(content),
       //TODO: 0 is disabled autodelete
       t.MessageContactRegistered => "has joined Telegram",
       t.MessageChatJoinByLink => "has joined the chat via invite link",
