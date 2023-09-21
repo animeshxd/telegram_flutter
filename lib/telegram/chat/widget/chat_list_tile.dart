@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:humanizer/humanizer.dart';
 import 'package:tdffi/client.dart';
+import '../../../const/regexs.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import 'package:tdffi/td.dart' as t;
@@ -327,6 +328,8 @@ class _ChatListTileState extends State<ChatListTile> {
             : null;
 
         senderName = senderUser?.fullName ?? senderChat?.title ?? '';
+        senderName = senderName.replaceAll(spaceLikeCharacters, ' ');
+        senderName = senderName.replaceAll(RegExp(r'\s{2,}'), '');
       } on TelegramError catch (e) {
         if (e.code != 404) rethrow;
       }
