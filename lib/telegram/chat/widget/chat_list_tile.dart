@@ -7,12 +7,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:humanizer/humanizer.dart';
 import 'package:tdffi/client.dart';
-import '../../../const/regexs.dart';
-import '../controller/download_profile_photo.dart';
-import '../cubit/chat_cubit.dart';
 import 'package:tdffi/td.dart' as t;
 
+import '../../../const/regexs.dart';
 import '../../../extensions/extensions.dart';
+import '../controller/download_profile_photo.dart';
+import '../cubit/chat_cubit.dart';
 import 'ellipsis_text.dart';
 
 class ChatListTile extends StatefulWidget {
@@ -236,7 +236,10 @@ class _ChatListTileState extends State<ChatListTile> {
                 child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
               );
             }
-            return CircleAvatar(backgroundColor: color, child: const Text("🫥"),);
+            return CircleAvatar(
+              backgroundColor: color,
+              child: const Text("🫥"),
+            );
           },
         );
       }
