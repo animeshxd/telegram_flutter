@@ -297,11 +297,13 @@ class _ChatListTileState extends State<ChatListTile> {
     //TODO: Show album caption, resolve album
     //TODO: Separator Caption only
     //TODO: Show text format based on FormattedText
+    //TODO: Show who pinned what message/type of content
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
 
     String senderName = '';
     var isChatActions = switch (content.runtimeType) {
+      t.MessagePinMessage ||
       t.MessageContactRegistered ||
       t.MessageGameScore ||
       t.MessageChatJoinByLink ||
@@ -316,9 +318,12 @@ class _ChatListTileState extends State<ChatListTile> {
       _ => false
     };
     var isChannel = (chat.type.chatTypeSupergroup?.is_channel ?? false);
+    var isGroup = !isChannel &&
+        chat.type.chatTypePrivate == null &&
+        chat.type.chatTypeSecret == null;
     var isPrivate = (chat.type.chatTypePrivate != null);
-    var senderRequired = !message.is_outgoing && !(isChannel || isPrivate) ||
-        content.messageContactRegistered != null;
+    var senderRequired =
+        !message.is_outgoing && ((isPrivate && isChatActions) || isGroup);
 
     if (senderRequired) {
       try {
@@ -352,12 +357,12 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageSupergroupChatCreate => "Channel created",
       t.MessageChatChangeTitle => content.messageChatChangeTitle!.title,
       t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
-      t.MessagePinMessage => "has pinned a message",
+      t.MessagePinMessage => "pinned a message",
       t.MessageChatSetMessageAutoDeleteTime =>
         _getMessageChatSetMessageAutoDeleteTimeCaption(content),
       //TODO: 0 is disabled autodelete
-      t.MessageContactRegistered => "has joined Telegram",
-      t.MessageChatJoinByLink => "has joined the chat via invite link",
+      t.MessageContactRegistered => "joined Telegram",
+      t.MessageChatJoinByLink => "joined the chat via invite link",
       t.MessageChatJoinByRequest => "'s join request accepted by admin",
       t.MessageChatAddMembers => "joined chat / added users",
       t.MessageChatDeleteMember => "removed user {user_id}",
