@@ -360,7 +360,6 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessagePinMessage => "pinned a message",
       t.MessageChatSetMessageAutoDeleteTime =>
         _getMessageChatSetMessageAutoDeleteTimeCaption(content),
-      //TODO: 0 is disabled autodelete
       t.MessageContactRegistered => "joined Telegram",
       t.MessageChatJoinByLink => "joined the chat via invite link",
       t.MessageChatJoinByRequest => "'s join request accepted by admin",
