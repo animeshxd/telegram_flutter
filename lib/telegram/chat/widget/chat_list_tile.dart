@@ -333,8 +333,9 @@ class _ChatListTileState extends State<ChatListTile> {
         var senderChat = senderChatId != null
             ? await _tdlib.send<t.Chat>(t.GetChat(chat_id: senderChatId))
             : null;
-
-        senderName = senderUser?.fullName ?? senderChat?.title ?? '';
+        var title =
+            senderUser?.type is t.UserTypeDeleted ? 'Deleted Account' : null;
+        senderName = title ?? senderUser?.fullName ?? senderChat?.title ?? '';
         senderName = senderName.replaceAll(spaceLikeCharacters, ' ');
         senderName = senderName.replaceAll(RegExp(r'\s{2,}'), '');
       } on TelegramError catch (e) {
