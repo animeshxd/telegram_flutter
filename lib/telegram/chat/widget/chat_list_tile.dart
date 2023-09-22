@@ -293,7 +293,6 @@ class _ChatListTileState extends State<ChatListTile> {
   }
 
   Future<Widget> subtitle(t.Message? message) async {
-    //TODO: show removed/added user name
     //TODO: Show album caption, resolve album
     //TODO: Separator Caption only
     //TODO: Show text format based on FormattedText
@@ -367,6 +366,29 @@ class _ChatListTileState extends State<ChatListTile> {
       t.MessageChatDeleteMember => "removed user {user_id}",
       _ => null
     };
+
+    if (content is t.MessageChatAddMembers) {
+      var id = message.sender_id.messageSenderUser?.user_id ??
+          message.sender_id.messageSenderChat?.chat_id;
+      if (content.member_user_ids.any((element) => element == id)) {
+        caption = "joined the group";
+      } else {
+        var users = await Future.wait(
+          content.member_user_ids.map((id) => _getUser(id)),
+        );
+        caption = "added ${users.map((e) => e.fullName).join(', ')}";
+      }
+    }
+    if (content is t.MessageChatDeleteMember) {
+      var id = message.sender_id.messageSenderUser?.user_id ??
+          message.sender_id.messageSenderChat?.chat_id;
+      if (content.user_id == id) {
+        caption = "left the group";
+      } else {
+        var user = await _getUser(content.user_id);
+        caption = "removed ${user.fullName}";
+      }
+    }
 
     if (content is t.MessageChatChangeTitle) {
       if (isChannel) {
