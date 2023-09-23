@@ -302,21 +302,7 @@ class _ChatListTileState extends State<ChatListTile> {
     var content = message.content;
 
     String senderName = '';
-    var isChatActions = switch (content.runtimeType) {
-      t.MessagePinMessage ||
-      t.MessageContactRegistered ||
-      t.MessageGameScore ||
-      t.MessageChatJoinByLink ||
-      t.MessageChatJoinByRequest ||
-      t.MessageChatAddMembers ||
-      t.MessageChatDeleteMember ||
-      t.MessageGame ||
-      t.MessageGameScore ||
-      t.MessageChatChangeTitle ||
-      t.MessageChatSetMessageAutoDeleteTime =>
-        true,
-      _ => false
-    };
+    var isChatActions = content.isChatActions;
     var isChannel = chat.isChannel;
     var isGroup = chat.isGroup;
     var isPrivate = chat.isPrivate;

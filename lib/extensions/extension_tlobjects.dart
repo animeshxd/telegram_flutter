@@ -19,3 +19,21 @@ extension ChatModExt on Chat {
     );
   }
 }
+
+extension MessageContentExt on MessageContent {
+  bool get isChatActions => switch (runtimeType) {
+        MessagePinMessage ||
+        MessageContactRegistered ||
+        MessageGameScore ||
+        MessageChatJoinByLink ||
+        MessageChatJoinByRequest ||
+        MessageChatAddMembers ||
+        MessageChatDeleteMember ||
+        MessageGame ||
+        MessageGameScore ||
+        MessageChatChangeTitle ||
+        MessageChatSetMessageAutoDeleteTime =>
+          true,
+        _ => false
+      };
+}
