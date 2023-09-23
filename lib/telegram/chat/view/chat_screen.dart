@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+import '../models/chat.dart';
 import '../widget/chat_list_tile.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';

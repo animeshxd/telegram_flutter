@@ -8,6 +8,9 @@ import 'package:logging/logging.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
+import '../models/chat.dart';
+import '../../../extensions/extension_tlobjects.dart';
+
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
@@ -225,39 +228,7 @@ class ChatCubit extends Cubit<ChatState> {
 
 class ChatLoadedFailed extends ChatState {}
 
-// ignore: must_be_immutable
-class Chat extends Equatable {
-  final int id;
-  String title;
-  List<t.ChatPosition> positions = [];
-  t.ChatType type;
-  t.ChatPhotoInfo? photo;
-  Chat({
-    required this.id,
-    required this.title,
-    required this.positions,
-    required this.type,
-    required this.photo,
-  });
-
-  @override
-  List<Object?> get props => [id, title, positions.length];
-}
-
 final class ChatTypeUnknown extends t.ChatType {
   @override
   Map<String, dynamic> toJson() => {};
-}
-
-extension on t.Chat {
-  /// custom Chat object
-  Chat get mod {
-    return Chat(
-      id: id,
-      title: title,
-      type: type,
-      photo: photo,
-      positions: positions,
-    );
-  }
 }

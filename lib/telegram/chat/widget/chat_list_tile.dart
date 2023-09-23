@@ -13,6 +13,7 @@ import '../../../const/regexs.dart';
 import '../../../extensions/extensions.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
+import '../models/chat.dart';
 import 'ellipsis_text.dart';
 
 class ChatListTile extends StatefulWidget {
@@ -316,11 +317,9 @@ class _ChatListTileState extends State<ChatListTile> {
         true,
       _ => false
     };
-    var isChannel = (chat.type.chatTypeSupergroup?.is_channel ?? false);
-    var isGroup = !isChannel &&
-        chat.type.chatTypePrivate == null &&
-        chat.type.chatTypeSecret == null;
-    var isPrivate = (chat.type.chatTypePrivate != null);
+    var isChannel = chat.isChannel;
+    var isGroup = chat.isGroup;
+    var isPrivate = chat.isPrivate;
     var senderRequired =
         !message.is_outgoing && ((isPrivate && isChatActions) || isGroup);
 
