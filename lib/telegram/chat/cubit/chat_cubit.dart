@@ -227,8 +227,3 @@ class ChatCubit extends Cubit<ChatState> {
 }
 
 class ChatLoadedFailed extends ChatState {}
-
-final class ChatTypeUnknown extends t.ChatType {
-  @override
-  Map<String, dynamic> toJson() => {};
-}

@@ -26,3 +26,8 @@ extension ChatExt on Chat {
       !isChannel && type.chatTypePrivate == null && type.chatTypeSecret == null;
   bool get isPrivate => (type.chatTypePrivate != null);
 }
+
+final class ChatTypeUnknown extends t.ChatType {
+  @override
+  Map<String, dynamic> toJson() => {};
+}
