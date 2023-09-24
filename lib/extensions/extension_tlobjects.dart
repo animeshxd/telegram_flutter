@@ -18,6 +18,7 @@ extension ChatModExt on Chat {
       positions: positions,
       unreadMentionCount: unread_mention_count,
       unreadReactionCount: unread_reaction_count,
+      unreadMessageCount: unread_count
     );
   }
 }

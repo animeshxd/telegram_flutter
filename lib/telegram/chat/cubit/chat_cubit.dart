@@ -34,15 +34,12 @@ class ChatCubit extends Cubit<ChatState> {
 
   final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
 
-  final unReadCount = <int, int>{}.obs;
-
   ChatLoaded get loadedState => ChatLoaded(
         totalChats: _totalChats,
         needLoaded: _needLoaded,
         chats: chats,
         ignoredChats: ignoredChats,
         lastMessages: lastMessages,
-        unReadCount: unReadCount,
         users: users,
       );
   void _updateChat({
@@ -76,7 +73,6 @@ class ChatCubit extends Cubit<ChatState> {
         (chat) {
           _updateNeedLoaded(chat.positions);
           _updateChat(id: chat.id, positions: chat.positions, chat: chat);
-          unReadCount[chat.id] = chat.unread_count;
           lastMessages.update(
             chat.id,
             (value) {
@@ -116,9 +112,16 @@ class ChatCubit extends Cubit<ChatState> {
             ),
           ),
 
-      tdlib.updates
-          .whereType<t.UpdateChatReadInbox>()
-          .listen((event) => unReadCount[event.chat_id] = event.unread_count),
+      tdlib.updates.whereType<t.UpdateChatReadInbox>().listen((event) {
+        chats.update(
+          event.chat_id,
+          (value) => value..unreadMessageCount.value = event.unread_count,
+          ifAbsent: () => Chat.unknown(
+            id: event.chat_id,
+            unreadMessageCount: event.unread_count,
+          ),
+        );
+      }),
 
       tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen((event) {
         chats[event.chat_id]?.unreadMentionCount.value =

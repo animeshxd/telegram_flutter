@@ -79,36 +79,35 @@ class _ChatListTileState extends State<ChatListTile> {
   }
 
   Widget get trailing => Obx(() {
-      if (chat.unreadMentionCount.value > 0) {
-        return const ChatMentionedBadge();
-      }
-
-      if (chat.unreadReactionCount.value > 0) {
-        return const ChatReactionBadge();
-      }
-      var count = state.unReadCount[chat.id];
-      if (count == null || count == 0) {
-        var isPinned = chat.positions
-            .where((element) =>
-                element.list.runtimeType == widget.chatListType.runtimeType)
-            .any((element) => element.is_pinned);
-        if (isPinned) {
-          return Transform.rotate(
-            angle: 1,
-            child: const Icon(
-              Icons.push_pin,
-              size: 16,
-            ),
-          );
+        if (chat.unreadMentionCount.value > 0) {
+          return const ChatMentionedBadge();
         }
-        return const SizedBox.shrink();
-      }
-      return Badge(
-        label: Text(count.toString()),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      );
-    });
-  }
+
+        if (chat.unreadReactionCount.value > 0) {
+          return const ChatReactionBadge();
+        }
+        var count = chat.unreadMessageCount.value;
+        if (count == 0) {
+          var isPinned = chat.positions
+              .where((element) =>
+                  element.list.runtimeType == widget.chatListType.runtimeType)
+              .any((element) => element.is_pinned);
+          if (isPinned) {
+            return Transform.rotate(
+              angle: 1,
+              child: const Icon(
+                Icons.push_pin,
+                size: 16,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+        return Badge(
+          label: Text(count.toString()),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        );
+      });
 
   Future<Widget> titleW() async {
     var title = chat.title;

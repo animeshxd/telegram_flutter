@@ -11,6 +11,7 @@ class Chat extends Equatable {
   t.ChatPhotoInfo? photo;
   final RxInt unreadMentionCount = 0.obs;
   final RxInt unreadReactionCount = 0.obs;
+  final RxInt unreadMessageCount = 0.obs;
   Chat({
     required this.id,
     required this.title,
@@ -19,9 +20,11 @@ class Chat extends Equatable {
     required this.photo,
     required int unreadMentionCount,
     required int unreadReactionCount,
+    required int unreadMessageCount,
   }) {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
+    this.unreadMessageCount.value = unreadMessageCount;
   }
 
   Chat.unknown({
@@ -31,9 +34,11 @@ class Chat extends Equatable {
     this.photo,
     int unreadMentionCount = 0,
     int unreadReactionCount = 0,
+    int unreadMessageCount = 0,
   }) : type = ChatTypeUnknown() {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
+    this.unreadMessageCount.value = unreadMessageCount;
   }
 
   @override

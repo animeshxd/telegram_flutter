@@ -17,7 +17,6 @@ final class ChatLoaded extends ChatState {
   final RxMap<int, Chat> chats;
   final RxMap<int, t.User> users;
   final RxMap<int, t.UpdateChatLastMessage> lastMessages;
-  final RxMap<int, int> unReadCount;
   final RxSet<int> ignoredChats;
 
   const ChatLoaded({
@@ -27,7 +26,6 @@ final class ChatLoaded extends ChatState {
     required this.ignoredChats,
     required this.users,
     required this.lastMessages,
-    required this.unReadCount,
   });
 
   @override
@@ -37,6 +35,5 @@ final class ChatLoaded extends ChatState {
         chats.length,
         ignoredChats.length,
         lastMessages.length,
-        unReadCount.length,
       ];
 }
