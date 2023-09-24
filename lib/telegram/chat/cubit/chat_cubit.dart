@@ -64,8 +64,13 @@ class ChatCubit extends Cubit<ChatState> {
     );
   }
 
+  void _debugUpdates(t.Update update) {
+    // body unstaged
+  }
+
   ChatCubit(this.tdlib) : super(ChatInitial()) {
     _streamSubscriptions.addAll([
+      tdlib.updates.listen(_debugUpdates),
       tdlib.updates
           .whereType<t.UpdateNewChat>()
           .map((event) => event.chat)
