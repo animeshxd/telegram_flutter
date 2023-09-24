@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:tdffi/client.dart';
 
 import 'telegram/auth/bloc/auth_bloc.dart';
-import 'telegram/auth/login/bloc/login_bloc.dart';
 import 'telegram/auth/login/view/routes.dart';
 import 'telegram/auth/view/tdlib_init_failed_screen.dart';
 import 'telegram/chat/controller/download_profile_photo.dart';
@@ -64,7 +63,6 @@ class _MainAppState extends State<MainApp> {
       blocs: [
         BlocProvider(create: (context) => TelegramClientBloc(context.read())),
         BlocProvider(create: (context) => AuthBloc(context.read())),
-        BlocProvider(create: (context) => LoginBloc(context.read())),
         BlocProvider(create: (context) => ConnectionCubit(context.read())),
         BlocProvider(create: (context) => ChatCubit(context.read()))
       ],

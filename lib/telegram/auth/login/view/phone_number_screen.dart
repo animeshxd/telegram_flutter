@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/state_manager.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../bloc/auth_bloc.dart';
-import '../bloc/login_bloc.dart';
 import '../widgets/country_and_phone_number_field.dart';
 import 'bot_token_screen.dart';
 
@@ -18,11 +18,13 @@ class LoginPhoneNumberPage extends StatefulWidget {
 }
 
 class _LoginPhoneNumberPageState extends State<LoginPhoneNumberPage> {
-  bool _isSending = false;
+  final _isSending = false.obs;
+  final _phoneIssValidated = false.obs;
+  final _isSubmitButtonFocused = false.obs;
+
   String? errorText;
   late AuthBloc authBloc;
   PhoneNumber? _phoneNumber;
-  bool _phoneIssValidated = false;
   @override
   void initState() {
     super.initState();
@@ -30,6 +32,15 @@ class _LoginPhoneNumberPageState extends State<LoginPhoneNumberPage> {
     if (widget.needAuthStateCheck) {
       authBloc.add(AuthCheckCurrentStateEvent());
     }
+  }
+
+  void _submitPhoneNumber() {
+    if (_phoneNumber == null) return;
+    _isSending.value = true;
+    _isSubmitButtonFocused.value = false;
+    context
+        .read<AuthBloc>()
+        .add(AuthPhoneNumberAquiredEvent(_phoneNumber!.completeNumber));
   }
 
   void _onFormValidated(BuildContext context) {
@@ -54,18 +65,8 @@ class _LoginPhoneNumberPageState extends State<LoginPhoneNumberPage> {
             ),
             TextButton(
               onPressed: () {
-                _isSending = true;
-                context
-                    .read<LoginBloc>()
-                    .add(const SubmitButtonNotFocusedEvent());
-                context.read<LoginBloc>().add(
-                      FormSubmittedEvent(
-                        state: SubmitButtonFocused(
-                            completeNumber: _phoneNumber!.completeNumber),
-                      ),
-                    );
+                _submitPhoneNumber();
                 Navigator.of(context).maybePop();
-                // context.replace(OTPPage.path);
               },
               child: const Text('Login'),
             ),
@@ -82,9 +83,9 @@ class _LoginPhoneNumberPageState extends State<LoginPhoneNumberPage> {
       listener: (context, state) {
         if (state is AuthStatePhoneNumberInvalid) {
           errorText = state.error.message;
-          _isSending = false;
-          _phoneIssValidated = false;
-          context.read<LoginBloc>().add(const SubmitButtonNotFocusedEvent());
+          _isSending.value = false;
+          _phoneIssValidated.value = false;
+          _isSubmitButtonFocused.value = false;
           // context.showSnackBar(SnackBar(content: Text(state.error.message)));
           return;
         }
@@ -94,54 +95,48 @@ class _LoginPhoneNumberPageState extends State<LoginPhoneNumberPage> {
 
         state.doRoute(context);
       },
-      builder: (context, state) => BlocBuilder<LoginBloc, LoginState>(
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(),
-            floatingActionButton: FloatingActionButton(
-              onPressed: !_isSending && _phoneIssValidated
-                  ? () => _onFormValidated(context)
-                  : null,
-              child: _isSending
-                  ? const CircularProgressIndicator()
-                  : const Icon(Icons.navigate_next),
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CountryAndPhoneNumberField(
-                    errorText: errorText,
-                    onValidated: (value) {
-                      _phoneIssValidated = true;
-                      _phoneNumber = value;
-                      context.read<LoginBloc>().add(
-                            SubmitButtonFocusedEvent(
-                              completeNumber: value.completeNumber,
-                            ),
-                          );
-                    },
-                    onChanged: (value) {
-                      _phoneNumber = value;
-                      _phoneIssValidated = false;
-                      context
-                          .read<LoginBloc>()
-                          .add(const SubmitButtonNotFocusedEvent());
-                    },
-                  ),
-                  const SizedBox(height: 5),
-                  TextButton(
-                    onPressed: _isSending
-                        ? null
-                        : () => context.replace(LoginAsBotPage.path),
-                    child: const Text('Login with Bot Token'),
-                  )
-                ],
+      builder: (context, state) => Scaffold(
+        appBar: AppBar(),
+        floatingActionButton: Obx(
+          () => FloatingActionButton(
+            onPressed: !_isSending.value && _phoneIssValidated.value
+                ? () => _onFormValidated(context)
+                : null,
+            child: _isSending.value
+                ? const CircularProgressIndicator()
+                : const Icon(Icons.navigate_next),
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CountryAndPhoneNumberField(
+                errorText: errorText,
+                onValidated: (value) {
+                  _phoneIssValidated.value = true;
+                  _phoneNumber = value;
+                  _isSubmitButtonFocused.value = true;
+                },
+                onChanged: (value) {
+                  _phoneIssValidated.value = false;
+                  _phoneNumber = value;
+                  _isSubmitButtonFocused.value = false;
+                },
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 5),
+              Obx(
+                () => TextButton(
+                  onPressed: _isSending.value
+                      ? null
+                      : () => context.replace(LoginAsBotPage.path),
+                  child: const Text('Login with Bot Token'),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tdffi/td.dart' as t;
-import '../bloc/login_bloc.dart';
 import 'phone_number_screen.dart';
 
 import '../../bloc/auth_bloc.dart';
@@ -82,9 +81,7 @@ class _OTPPageState extends State<OTPPage> {
   String? get hintText => codeType.authenticationCodeTypeFlashCall?.pattern;
 
   void _submitCode(String code) {
-    context
-        .read<LoginBloc>()
-        .add(FormSubmittedEvent(state: SubmitButtonFocused(code: code)));
+    context.read<AuthBloc>().add(AuthCodeAquiredEvent(code));
   }
 
   @override
