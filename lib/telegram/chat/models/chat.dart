@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:tdffi/td.dart' as t;
 
 // ignore: must_be_immutable
@@ -8,26 +9,32 @@ class Chat extends Equatable {
   List<t.ChatPosition> positions = [];
   t.ChatType type;
   t.ChatPhotoInfo? photo;
-  int unreadMentionCount;
-  int unreadReactionCount;
+  final RxInt unreadMentionCount = 0.obs;
+  final RxInt unreadReactionCount = 0.obs;
   Chat({
     required this.id,
     required this.title,
     required this.positions,
     required this.type,
     required this.photo,
-    required this.unreadMentionCount,
-    required this.unreadReactionCount,
-  });
+    required int unreadMentionCount,
+    required int unreadReactionCount,
+  }) {
+    this.unreadMentionCount.value = unreadMentionCount;
+    this.unreadReactionCount.value = unreadReactionCount;
+  }
 
   Chat.unknown({
     required this.id,
     this.title = '',
     this.positions = const [],
     this.photo,
-    this.unreadMentionCount = 0,
-    this.unreadReactionCount = 0,
-  }) : type = ChatTypeUnknown();
+    int unreadMentionCount = 0,
+    int unreadReactionCount = 0,
+  }) : type = ChatTypeUnknown() {
+    this.unreadMentionCount.value = unreadMentionCount;
+    this.unreadReactionCount.value = unreadReactionCount;
+  }
 
   @override
   List<Object?> get props => [id, title, positions.length];

@@ -121,14 +121,20 @@ class ChatCubit extends Cubit<ChatState> {
           .listen((event) => unReadCount[event.chat_id] = event.unread_count),
 
       tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen((event) {
-        chats[event.chat_id]?.unreadMentionCount = event.unread_mention_count;
+        chats[event.chat_id]?.unreadMentionCount.value =
+            event.unread_mention_count;
         chats.refresh();
       }),
       tdlib.updates
           .whereType<t.UpdateChatUnreadReactionCount>()
           .listen((event) {
-        chats[event.chat_id]?.unreadReactionCount = event.unread_reaction_count;
-        chats.refresh();
+        chats[event.chat_id]?.unreadReactionCount.value =
+            event.unread_reaction_count;
+      }),
+
+      tdlib.updates.whereType<t.UpdateMessageMentionRead>().listen((event) {
+        chats[event.chat_id]?.unreadMentionCount.value =
+            event.unread_mention_count;
       }),
 
       tdlib.updates

@@ -78,16 +78,14 @@ class _ChatListTileState extends State<ChatListTile> {
     );
   }
 
-  Widget get trailing {
-    if (chat.unreadMentionCount > 0) {
-      return const ChatMentionedBadge();
-    }
+  Widget get trailing => Obx(() {
+      if (chat.unreadMentionCount.value > 0) {
+        return const ChatMentionedBadge();
+      }
 
-    if (chat.unreadReactionCount > 0) {
-      return const ChatReactionBadge();
-    }
-
-    return Obx(() {
+      if (chat.unreadReactionCount.value > 0) {
+        return const ChatReactionBadge();
+      }
       var count = state.unReadCount[chat.id];
       if (count == null || count == 0) {
         var isPinned = chat.positions
