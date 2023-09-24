@@ -75,7 +75,12 @@ class _ChatListTileState extends State<ChatListTile> {
         ),
       ),
       trailing: trailing,
+      onTap: _debug,
     );
+  }
+
+  void _debug() async {
+    //unstaged body
   }
 
   Widget get trailing => Obx(() {
