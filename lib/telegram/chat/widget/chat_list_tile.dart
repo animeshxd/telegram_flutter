@@ -14,6 +14,8 @@ import '../../../extensions/extensions.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
+import 'chat_mentioned_badge.dart';
+import 'chat_reaction_badge.dart';
 import 'ellipsis_text.dart';
 
 class ChatListTile extends StatefulWidget {
@@ -75,29 +77,40 @@ class _ChatListTileState extends State<ChatListTile> {
       trailing: trailing,
     );
   }
-  Widget get trailing => Obx(() {
-        var count = state.unReadCount[chat.id];
-        if (count == null || count == 0) {
-          var isPinned = chat.positions
-              .where((element) =>
-                  element.list.runtimeType == widget.chatListType.runtimeType)
-              .any((element) => element.is_pinned);
-          if (isPinned) {
-            return Transform.rotate(
-              angle: 1,
-              child: const Icon(
-                Icons.push_pin,
-                size: 16,
-              ),
-            );
-          }
-          return const SizedBox.shrink();
+
+  Widget get trailing {
+    if (chat.unreadMentionCount > 0) {
+      return const ChatMentionedBadge();
+    }
+
+    if (chat.unreadReactionCount > 0) {
+      return const ChatReactionBadge();
+    }
+
+    return Obx(() {
+      var count = state.unReadCount[chat.id];
+      if (count == null || count == 0) {
+        var isPinned = chat.positions
+            .where((element) =>
+                element.list.runtimeType == widget.chatListType.runtimeType)
+            .any((element) => element.is_pinned);
+        if (isPinned) {
+          return Transform.rotate(
+            angle: 1,
+            child: const Icon(
+              Icons.push_pin,
+              size: 16,
+            ),
+          );
         }
-        return Badge(
-          label: Text(count.toString()),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        );
-      });
+        return const SizedBox.shrink();
+      }
+      return Badge(
+        label: Text(count.toString()),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      );
+    });
+  }
 
   Future<Widget> titleW() async {
     var title = chat.title;

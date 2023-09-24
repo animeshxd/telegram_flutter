@@ -16,6 +16,8 @@ extension ChatModExt on Chat {
       type: type,
       photo: photo,
       positions: positions,
+      unreadMentionCount: unread_mention_count,
+      unreadReactionCount: unread_reaction_count,
     );
   }
 }

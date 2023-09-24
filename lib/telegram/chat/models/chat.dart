@@ -8,13 +8,26 @@ class Chat extends Equatable {
   List<t.ChatPosition> positions = [];
   t.ChatType type;
   t.ChatPhotoInfo? photo;
+  int unreadMentionCount;
+  int unreadReactionCount;
   Chat({
     required this.id,
     required this.title,
     required this.positions,
     required this.type,
     required this.photo,
+    required this.unreadMentionCount,
+    required this.unreadReactionCount,
   });
+
+  Chat.unknown({
+    required this.id,
+    this.title = '',
+    this.positions = const [],
+    this.photo,
+    this.unreadMentionCount = 0,
+    this.unreadReactionCount = 0,
+  }) : type = ChatTypeUnknown();
 
   @override
   List<Object?> get props => [id, title, positions.length];

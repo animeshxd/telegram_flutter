@@ -63,15 +63,7 @@ class ChatCubit extends Cubit<ChatState> {
         value.positions = map.values.toList();
         return value;
       },
-      ifAbsent: () =>
-          chat?.mod ??
-          Chat(
-            title: '',
-            id: id,
-            positions: positions,
-            type: ChatTypeUnknown(),
-            photo: null,
-          ),
+      ifAbsent: () => chat?.mod ?? Chat.unknown(id: id, positions: positions),
     );
   }
 
@@ -127,6 +119,17 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateChatReadInbox>()
           .listen((event) => unReadCount[event.chat_id] = event.unread_count),
+
+      tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen((event) {
+        chats[event.chat_id]?.unreadMentionCount = event.unread_mention_count;
+        chats.refresh();
+      }),
+      tdlib.updates
+          .whereType<t.UpdateChatUnreadReactionCount>()
+          .listen((event) {
+        chats[event.chat_id]?.unreadReactionCount = event.unread_reaction_count;
+        chats.refresh();
+      }),
 
       tdlib.updates
           .whereType<t.UpdateSupergroup>()
