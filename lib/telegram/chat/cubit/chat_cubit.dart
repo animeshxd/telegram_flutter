@@ -42,27 +42,6 @@ class ChatCubit extends Cubit<ChatState> {
         lastMessages: lastMessages,
         users: users,
       );
-  void _updateChat({
-    required int id,
-    required List<t.ChatPosition> positions,
-    t.Chat? chat,
-  }) {
-    chats.update(
-      id,
-      (value) {
-        var map = Map.fromEntries(
-          value.positions.map((e) => MapEntry(e.list.runtimeType, e)),
-        );
-        for (var e in positions) {
-          map[e.list.runtimeType] = e;
-        }
-        if (chat != null) value = chat.mod;
-        value.positions = map.values.toList();
-        return value;
-      },
-      ifAbsent: () => chat?.mod ?? Chat.unknown(id: id, positions: positions),
-    );
-  }
 
   void _debugUpdates(t.Update update) {
     // body unstaged
@@ -77,7 +56,11 @@ class ChatCubit extends Cubit<ChatState> {
           .listen(
         (chat) {
           _updateNeedLoaded(chat.positions);
-          _updateChat(id: chat.id, positions: chat.positions, chat: chat);
+          chats.update(
+            chat.id,
+            (value) => value.updateFromTdChat(chat),
+            ifAbsent: () => chat.mod,
+          );
           lastMessages.update(
             chat.id,
             (value) {
@@ -111,39 +94,51 @@ class ChatCubit extends Cubit<ChatState> {
       // tdlib.updates.listen(print)
 
       tdlib.updates.whereType<t.UpdateChatPosition>().listen(
-            (event) => _updateChat(
-              id: event.chat_id,
-              positions: [event.position],
+            (event) => chats.update(
+              event.chat_id,
+              (value) => value.update(positions: [event.position]),
+              ifAbsent: () => Chat.unknown(
+                id: event.chat_id,
+                positions: [event.position],
+              ),
             ),
           ),
 
-      tdlib.updates.whereType<t.UpdateChatReadInbox>().listen((event) {
-        chats.update(
-          event.chat_id,
-          (value) => value..unreadMessageCount.value = event.unread_count,
-          ifAbsent: () => Chat.unknown(
-            id: event.chat_id,
-            unreadMessageCount: event.unread_count,
+      tdlib.updates.whereType<t.UpdateChatReadInbox>().listen(
+            (event) => chats.update(
+              event.chat_id,
+              (value) => value.update(unreadMessageCount: event.unread_count),
+              ifAbsent: () => Chat.unknown(
+                id: event.chat_id,
+                unreadMessageCount: event.unread_count,
+              ),
+            ),
           ),
-        );
-      }),
 
-      tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen((event) {
-        chats[event.chat_id]?.unreadMentionCount.value =
-            event.unread_mention_count;
-        chats.refresh();
-      }),
-      tdlib.updates
-          .whereType<t.UpdateChatUnreadReactionCount>()
-          .listen((event) {
-        chats[event.chat_id]?.unreadReactionCount.value =
-            event.unread_reaction_count;
-      }),
-
-      tdlib.updates.whereType<t.UpdateMessageMentionRead>().listen((event) {
-        chats[event.chat_id]?.unreadMentionCount.value =
-            event.unread_mention_count;
-      }),
+      tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen(
+            (event) => chats.update(
+              event.chat_id,
+              (value) => value.update(
+                unreadMentionCount: event.unread_mention_count,
+              ),
+              ifAbsent: () => Chat.unknown(
+                id: event.chat_id,
+                unreadMentionCount: event.unread_mention_count,
+              ),
+            ),
+          ),
+      tdlib.updates.whereType<t.UpdateChatUnreadReactionCount>().listen(
+            (event) => chats.update(
+              event.chat_id,
+              (value) => value.update(
+                unreadReactionCount: event.unread_reaction_count,
+              ),
+              ifAbsent: () => Chat.unknown(
+                id: event.chat_id,
+                unreadReactionCount: event.unread_reaction_count,
+              ),
+            ),
+          ),
 
       tdlib.updates
           .whereType<t.UpdateSupergroup>()

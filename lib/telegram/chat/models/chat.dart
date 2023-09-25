@@ -27,6 +27,49 @@ class Chat extends Equatable {
     this.unreadMessageCount.value = unreadMessageCount;
   }
 
+  Chat update({
+    String? title,
+    List<t.ChatPosition> positions = const [],
+    t.ChatType? type,
+    t.ChatPhotoInfo? photo,
+    int? unreadMentionCount,
+    int? unreadReactionCount,
+    int? unreadMessageCount,
+  }) {
+    this.title = title ?? this.title;
+    this.type = type ?? this.type;
+    this.photo = photo ?? this.photo;
+    this.unreadMentionCount.value =
+        unreadMentionCount ?? this.unreadMentionCount.value;
+    this.unreadMessageCount.value =
+        unreadMessageCount ?? this.unreadMessageCount.value;
+    this.unreadReactionCount.value =
+        unreadReactionCount ?? this.unreadReactionCount.value;
+
+    // update positions
+    var map = Map.fromEntries(
+      this.positions.map((e) => MapEntry(e.list.runtimeType, e)),
+    );
+    for (var e in positions) {
+      map[e.list.runtimeType] = e;
+    }
+    this.positions = map.values.toList();
+
+    return this;
+  }
+
+  Chat updateFromTdChat(t.Chat chat) {
+    return update(
+      title: chat.title,
+      photo: chat.photo,
+      positions: chat.positions,
+      type: chat.type,
+      unreadMentionCount: chat.unread_mention_count,
+      unreadMessageCount: chat.unread_count,
+      unreadReactionCount: chat.unread_reaction_count,
+    );
+  }
+
   Chat.unknown({
     required this.id,
     this.title = '',
