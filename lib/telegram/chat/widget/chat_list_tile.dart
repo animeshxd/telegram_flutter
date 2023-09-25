@@ -5,16 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:humanizer/humanizer.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
-import '../../../const/regexs.dart';
-import '../../../extensions/extensions.dart';
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
 import 'chat_mentioned_badge.dart';
+import 'chat_message.dart';
 import 'chat_reaction_badge.dart';
 import 'ellipsis_text.dart';
 
@@ -36,7 +34,6 @@ class ChatListTile extends StatefulWidget {
 class _ChatListTileState extends State<ChatListTile> {
   late final TdlibEventController _tdlib;
   late final DownloadProfilePhoto _downloadProfilePhoto;
-  late TextStyle _textStyleBodySmall;
 
   @override
   void initState() {
@@ -50,7 +47,6 @@ class _ChatListTileState extends State<ChatListTile> {
 
   @override
   Widget build(context) {
-    _textStyleBodySmall = Theme.of(context).textTheme.bodySmall!;
     return ListTile(
       //TODO: add better download small photo with retry
       leading: leading(),
@@ -62,15 +58,15 @@ class _ChatListTileState extends State<ChatListTile> {
       subtitle: Align(
         alignment: Alignment.centerLeft,
         child: ObxValue(
-          (data) => FutureBuilder(
-            future: subtitle(data[chat.id]?.last_message),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.hasError) {
-                return const SizedBox.shrink();
-              }
-              return snapshot.data!;
-            },
-          ),
+          (data) {
+            var message = data[chat.id]?.last_message;
+            if (message == null) return const SizedBox.shrink();
+            return ChatMessage(
+              chat: chat,
+              message: message,
+              state: state,
+            );
+          },
           state.lastMessages,
         ),
       ),
@@ -211,13 +207,6 @@ class _ChatListTileState extends State<ChatListTile> {
     );
   }
 
-  Future<t.User> _getUser(int id) async {
-    if (state.users[id] != null) state.users[id];
-    var user = await _tdlib.send<t.User>(t.GetUser(user_id: id));
-    state.users[id] = user;
-    return user;
-  }
-
   Widget _getColorAvatar(Chat chat, String title, t.User? user) {
     List<Color> colors = const [
       Colors.red,
@@ -244,7 +233,7 @@ class _ChatListTileState extends State<ChatListTile> {
     if (shortTitle.isEmpty) {
       if (user == null) {
         return FutureBuilder(
-          future: _getUser(id),
+          future: state.getUser(id, _tdlib),
           builder: (context, snapshot) {
             if (snapshot.data?.type.userTypeDeleted != null) {
               return CircleAvatar(
@@ -286,190 +275,5 @@ class _ChatListTileState extends State<ChatListTile> {
     var file = File(path);
     if (!file.existsSync()) return null;
     return CircleAvatar(backgroundImage: FileImage(file));
-  }
-
-  String _getDocumentCaption(t.MessageContent content) {
-    if (content is! t.MessageDocument) return '';
-
-    var caption = content.caption.text;
-    if (caption.isEmpty) caption = content.document.file_name;
-
-    return caption;
-  }
-
-  String _getMessageChatSetMessageAutoDeleteTimeCaption(
-      t.MessageContent content) {
-    if (content is! t.MessageChatSetMessageAutoDeleteTime) return '';
-    var time = Duration(seconds: content.message_auto_delete_time);
-    if (time.inSeconds == 0) {
-      return "disabled the auto-delete timer";
-    } else {
-      return "set messages to auto-delete in ${time.toApproximateTime(isRelativeToNow: false)}";
-    }
-  }
-
-  Future<String> _getMessageChatAddMembers(t.Message message) async {
-    var content = message.content;
-    if (content is! t.MessageChatAddMembers) return '';
-
-    var id = message.sender_id.messageSenderUser?.user_id ??
-        message.sender_id.messageSenderChat?.chat_id;
-    if (content.member_user_ids.any((element) => element == id)) {
-      return "joined the group";
-    } else {
-      var users = await Future.wait(
-        content.member_user_ids.map((id) => _getUser(id)),
-      );
-      return "added ${users.map((e) => e.fullName).join(', ')}";
-    }
-  }
-
-  Future<String> _getMessageChatDeleteMember(t.Message message) async {
-    var content = message.content;
-    if (content is! t.MessageChatDeleteMember) return '';
-    var id = message.sender_id.messageSenderUser?.user_id ??
-        message.sender_id.messageSenderChat?.chat_id;
-    if (content.user_id == id) {
-      return "left the group";
-    } else {
-      var user = await _getUser(content.user_id);
-      return "removed ${user.fullName}";
-    }
-  }
-
-  Future<String> _getMessageChatChangeTitle(
-      t.MessageContent content, Chat chat) async {
-    if (content is! t.MessageChatChangeTitle) return '';
-    var title = content.title;
-    if (chat.isChannel) {
-      return "Channel name was changed to «$title»";
-    } else {
-      return "changed group name to «$title»";
-    }
-  }
-
-  Future<String> _getMessageGameScore(t.MessageContent content) async {
-    if (content is! t.MessageGameScore) return '';
-    var score = content.score;
-
-    try {
-      var message = await _tdlib.send<t.Message>(
-        t.GetMessage(chat_id: chat.id, message_id: content.game_message_id),
-      );
-      var title = message.content.messageGame!.game.title;
-      return 'scored $score in $title';
-    } on TelegramError catch (e) {
-      if (e.code == 404) {
-        return 'scored $score';
-      }
-      rethrow;
-    }
-  }
-
-  Future<String> _getCaptionText(t.Message message, Chat chat) async {
-    var content = message.content;
-    return switch (content.runtimeType) {
-      t.MessageAudio => content.messageAudio!.caption.text,
-      t.MessageDocument => _getDocumentCaption(content),
-      t.MessageVideo => content.messageVideo!.caption.text,
-      t.MessagePhoto => content.messagePhoto!.caption.text,
-      t.MessageText => content.messageText!.text.text,
-      t.MessagePoll => content.messagePoll!.poll.question,
-      t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
-      t.MessageGame => content.messageGame!.game.short_name,
-      t.MessageGameScore => await _getMessageGameScore(content),
-      t.MessageSupergroupChatCreate => "Channel created",
-      t.MessageChatChangeTitle =>
-        await _getMessageChatChangeTitle(content, chat),
-      t.MessageAnimatedEmoji => content.messageAnimatedEmoji!.emoji,
-      t.MessagePinMessage => "pinned a message",
-      t.MessageChatSetMessageAutoDeleteTime =>
-        _getMessageChatSetMessageAutoDeleteTimeCaption(content),
-      t.MessageContactRegistered => "joined Telegram",
-      t.MessageChatJoinByLink => "joined the chat via invite link",
-      t.MessageChatJoinByRequest => "'s join request accepted by admin",
-      t.MessageChatAddMembers => await _getMessageChatAddMembers(message),
-      t.MessageChatDeleteMember => await _getMessageChatDeleteMember(message),
-      _ => ''
-    };
-  }
-
-  Future<Widget> subtitle(t.Message? message) async {
-    //TODO: Show album caption, resolve album
-    //TODO: Separator Caption only
-    //TODO: Show text format based on FormattedText
-    //TODO: Show who pinned what message/type of content
-    if (message == null) return const SizedBox.shrink();
-    var content = message.content;
-
-    String senderName = '';
-    var isChatActions = content.isChatActions;
-    var isGroup = chat.isGroup;
-    var isPrivate = chat.isPrivate;
-    var senderRequired =
-        !message.is_outgoing && ((isPrivate && isChatActions) || isGroup);
-
-    if (senderRequired) {
-      try {
-        var senderUserId = message.sender_id.messageSenderUser?.user_id;
-        var senderChatId = message.sender_id.messageSenderChat?.chat_id;
-        var senderUser =
-            senderUserId != null ? await _getUser(senderUserId) : null;
-        var senderChat = senderChatId != null
-            ? await _tdlib.send<t.Chat>(t.GetChat(chat_id: senderChatId))
-            : null;
-        var title =
-            senderUser?.type is t.UserTypeDeleted ? 'Deleted Account' : null;
-        senderName = title ?? senderUser?.fullName ?? senderChat?.title ?? '';
-        senderName = senderName.replaceAll(spaceLikeCharacters, ' ');
-        senderName = senderName.replaceAll(RegExp(r'\s{2,}'), '');
-      } on TelegramError catch (e) {
-        if (e.code != 404) rethrow;
-      }
-    }
-    if (message.is_outgoing && isChatActions) senderName = 'You';
-
-    String caption = await _getCaptionText(message, chat);
-
-    var icon = switch (content.runtimeType) {
-      t.MessageAudio => Icons.audio_file,
-      t.MessageDocument => Icons.attach_file,
-      t.MessagePhoto => Icons.photo,
-      t.MessageVideo => Icons.video_file,
-      t.MessageCall => Icons.call,
-      t.MessageGame || t.MessageGameScore => Icons.games,
-      t.MessagePoll => Icons.poll,
-      _ => null
-    };
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (icon != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-            child: Icon(icon, size: 17),
-          ),
-        Expanded(
-          child: RichText(
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              style: _textStyleBodySmall,
-              children: [
-                if (senderName.isNotEmpty)
-                  TextSpan(
-                    text: senderName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                if (senderName.isNotEmpty)
-                  TextSpan(text: isChatActions ? ' ' : " : "),
-                TextSpan(text: caption.trim().replaceAll('\n', '')),
-              ],
-            ),
-          ),
-        )
-      ],
-    );
   }
 }

@@ -28,6 +28,18 @@ final class ChatLoaded extends ChatState {
     required this.lastMessages,
   });
 
+  Future<Chat> getChat(int id, TdlibEventController tdlib) async {
+    var chat = chats[id];
+    chat ??= (await tdlib.send<t.Chat>(t.GetChat(chat_id: id))).mod;
+    return chat;
+  }
+
+  Future<t.User> getUser(int id, TdlibEventController tdlib) async {
+    var user = users[id];
+    user ??= (await tdlib.send<t.User>(t.GetUser(user_id: id)));
+    return user;
+  }
+
   @override
   List<Object> get props => [
         totalChats,
