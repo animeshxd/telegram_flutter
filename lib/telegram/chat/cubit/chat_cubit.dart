@@ -142,17 +142,38 @@ class ChatCubit extends Cubit<ChatState> {
 
       tdlib.updates
           .whereType<t.UpdateSupergroup>()
-          .where(
-              (event) => event.supergroup.status.chatMemberStatusLeft != null)
-          .map((event) => event.supergroup.id)
+          .map((event) => event.supergroup)
+          .where((event) =>
+              event.status.chatMemberStatusLeft != null ||
+              event.status.chatMemberStatusBanned != null)
+          .map((event) => event.id)
           .listen(ignoredChats.add),
 
       tdlib.updates
+          .whereType<t.UpdateSupergroup>()
+          .map((event) => event.supergroup)
+          .where((event) =>
+              event.status.chatMemberStatusLeft == null ||
+              event.status.chatMemberStatusBanned == null)
+          .map((event) => event.id)
+          .listen(ignoredChats.remove),
+
+      tdlib.updates
           .whereType<t.UpdateBasicGroup>()
-          .where(
-              (event) => event.basic_group.status.chatMemberStatusLeft != null)
-          .map((event) => event.basic_group.id)
+          .map((event) => event.basic_group)
+          .where((event) =>
+              event.status.chatMemberStatusLeft != null ||
+              event.status.chatMemberStatusBanned != null)
+          .map((event) => event.id)
           .listen(ignoredChats.add),
+      tdlib.updates
+          .whereType<t.UpdateBasicGroup>()
+          .map((event) => event.basic_group)
+          .where((event) =>
+              event.status.chatMemberStatusLeft == null ||
+              event.status.chatMemberStatusBanned == null)
+          .map((event) => event.id)
+          .listen(ignoredChats.remove),
 
       tdlib.updates
           .whereType<t.UpdateUser>()
