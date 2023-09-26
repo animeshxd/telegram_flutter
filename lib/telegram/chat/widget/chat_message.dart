@@ -138,8 +138,8 @@ class _ChatMessageState extends State<ChatMessage> {
       t.MessageText => content.messageText!.text.text,
       t.MessagePoll => content.messagePoll!.poll.question,
       t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
-      t.MessageGame => content.messageGame!.game.short_name,
-      t.MessageGameScore => await _getMessageGameScore(content),
+      t.MessageGame => '🎮 ${content.messageGame!.game.short_name}',
+      t.MessageGameScore => '🎮 ${await _getMessageGameScore(content)}',
       t.MessageSupergroupChatCreate => "Channel created",
       t.MessageChatChangeTitle =>
         await _getMessageChatChangeTitle(content, chat),
@@ -200,7 +200,7 @@ class _ChatMessageState extends State<ChatMessage> {
       t.MessagePhoto => Icons.photo,
       t.MessageVideo => Icons.video_file,
       t.MessageCall => Icons.call,
-      t.MessageGame || t.MessageGameScore => Icons.games,
+      // t.MessageGame || t.MessageGameScore => Icons.games,
       t.MessagePoll => Icons.poll,
       _ => null
     };
