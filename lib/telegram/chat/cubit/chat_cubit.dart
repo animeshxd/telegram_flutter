@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/state_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:tdffi/client.dart';
@@ -61,136 +60,142 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateNewChat>()
           .map((event) => event.chat)
-          .listen(
-        (chat) {
-          _updateNeedLoaded(chat.positions);
-          chats.update(
-            chat.id,
-            (value) => value.updateFromTdChat(chat),
-            ifAbsent: () => chat.mod,
-          );
-          lastMessages.update(
-            chat.id,
-            (value) {
-              value.last_message = chat.last_message ?? value.last_message;
-              return value;
-            },
-            ifAbsent: () => t.UpdateChatLastMessage(
-              chat_id: chat.id,
-              positions: chat.positions,
-              last_message: chat.last_message,
-            ),
-          );
-          if (_timerforLoadChatResult) {
-            idleTimer?.cancel();
-            idleTimer = Timer(idleDuration, _emitForLoadChatResult);
-          }
-        },
-      ),
-
+          .listen(_onNewChat),
       tdlib.updates
           .whereType<t.UpdateChatLastMessage>()
-          // .where((event) => event.last_message != null)
-          .listen((event) {
-        if (!chats.containsKey(event.chat_id)) {
-          _updateNeedLoaded(event.positions);
-        }
-        lastMessages[event.chat_id] = event;
-        if (event.last_message?.is_outgoing ?? false) return;
-      }),
-
-      tdlib.updates.whereType<t.UpdateChatTitle>().listen((event) {
-        chats[event.chat_id]?.title = event.title;
-        chats.refresh();
-      }),
-      // tdlib.updates.listen(print)
-
-      tdlib.updates.whereType<t.UpdateChatPosition>().listen(
-            (event) => chats.update(
-              event.chat_id,
-              (value) => value.update(positions: [event.position]),
-              ifAbsent: () => Chat.unknown(
-                id: event.chat_id,
-                positions: [event.position],
-              ),
-            ),
-          ),
-
-      tdlib.updates.whereType<t.UpdateChatReadInbox>().listen(
-            (event) => chats.update(
-              event.chat_id,
-              (value) => value.update(unreadMessageCount: event.unread_count),
-              ifAbsent: () => Chat.unknown(
-                id: event.chat_id,
-                unreadMessageCount: event.unread_count,
-              ),
-            ),
-          ),
-
-      tdlib.updates.whereType<t.UpdateChatUnreadMentionCount>().listen(
-            (event) => chats.update(
-              event.chat_id,
-              (value) => value.update(
-                unreadMentionCount: event.unread_mention_count,
-              ),
-              ifAbsent: () => Chat.unknown(
-                id: event.chat_id,
-                unreadMentionCount: event.unread_mention_count,
-              ),
-            ),
-          ),
-      tdlib.updates.whereType<t.UpdateChatUnreadReactionCount>().listen(
-            (event) => chats.update(
-              event.chat_id,
-              (value) => value.update(
-                unreadReactionCount: event.unread_reaction_count,
-              ),
-              ifAbsent: () => Chat.unknown(
-                id: event.chat_id,
-                unreadReactionCount: event.unread_reaction_count,
-              ),
-            ),
-          ),
-
+          .listen(_onUpdateChatLastMessage),
+      tdlib.updates.whereType<t.UpdateChatTitle>().listen(_onUpdateChatTitle),
+      tdlib.updates
+          .whereType<t.UpdateChatPosition>()
+          .listen(_onUpdateChatPosition),
+      tdlib.updates
+          .whereType<t.UpdateChatReadInbox>()
+          .listen(_onUpdateChatReadInbox),
+      tdlib.updates
+          .whereType<t.UpdateChatUnreadMentionCount>()
+          .listen(_onUpdateChatUnreadMentionCount),
+      tdlib.updates
+          .whereType<t.UpdateChatUnreadReactionCount>()
+          .listen(_onUpdateChatUnreadReactionCount),
       tdlib.updates
           .whereType<t.UpdateSupergroup>()
           .map((event) => event.supergroup)
-          .where((event) =>
-              event.status.chatMemberStatusLeft != null ||
-              event.status.chatMemberStatusBanned != null)
+          .where((e) => _whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
           .listen(ignoredChats.add),
-
       tdlib.updates
           .whereType<t.UpdateSupergroup>()
           .map((event) => event.supergroup)
-          .where((event) =>
-              event.status.chatMemberStatusLeft == null ||
-              event.status.chatMemberStatusBanned == null)
+          .where((e) => !_whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
           .listen(ignoredChats.remove),
-
       tdlib.updates
           .whereType<t.UpdateBasicGroup>()
           .map((event) => event.basic_group)
-          .where((event) =>
-              event.status.chatMemberStatusLeft != null ||
-              event.status.chatMemberStatusBanned != null)
+          .where((e) => _whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
           .listen(ignoredChats.add),
       tdlib.updates
           .whereType<t.UpdateBasicGroup>()
           .map((event) => event.basic_group)
-          .where((event) =>
-              event.status.chatMemberStatusLeft == null ||
-              event.status.chatMemberStatusBanned == null)
+          .where((e) => !_whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
           .listen(ignoredChats.remove),
-
       tdlib.updates
           .whereType<t.UpdateUser>()
           .listen((user) => users[user.user.id] = user.user),
     ]);
+  }
+
+  bool _whereChatMemberStatusBannedOrLeft(t.ChatMemberStatus status) {
+    return status.chatMemberStatusLeft != null ||
+        status.chatMemberStatusBanned != null;
+  }
+
+  void _onUpdateChatUnreadReactionCount(t.UpdateChatUnreadReactionCount event) {
+    chats.update(
+      event.chat_id,
+      (value) => value.update(
+        unreadReactionCount: event.unread_reaction_count,
+      ),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        unreadReactionCount: event.unread_reaction_count,
+      ),
+    );
+  }
+
+  void _onUpdateChatUnreadMentionCount(t.UpdateChatUnreadMentionCount event) {
+    chats.update(
+      event.chat_id,
+      (value) => value.update(
+        unreadMentionCount: event.unread_mention_count,
+      ),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        unreadMentionCount: event.unread_mention_count,
+      ),
+    );
+  }
+
+  void _onUpdateChatReadInbox(t.UpdateChatReadInbox event) {
+    chats.update(
+      event.chat_id,
+      (value) => value.update(unreadMessageCount: event.unread_count),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        unreadMessageCount: event.unread_count,
+      ),
+    );
+  }
+
+  void _onUpdateChatPosition(t.UpdateChatPosition event) {
+    chats.update(
+      event.chat_id,
+      (value) => value.update(positions: [event.position]),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        positions: [event.position],
+      ),
+    );
+  }
+
+  void _onUpdateChatTitle(t.UpdateChatTitle event) {
+    chats[event.chat_id]?.title = event.title;
+    chats.refresh();
+  }
+
+  void _onUpdateChatLastMessage(t.UpdateChatLastMessage event) {
+    if (!chats.containsKey(event.chat_id)) {
+      _updateNeedLoaded(event.positions);
+    }
+    lastMessages[event.chat_id] = event;
+    if (event.last_message?.is_outgoing ?? false) return;
+  }
+
+  void _onNewChat(t.Chat chat) {
+    _updateNeedLoaded(chat.positions);
+    chats.update(
+      chat.id,
+      (value) => value.updateFromTdChat(chat),
+      ifAbsent: () => chat.mod,
+    );
+    lastMessages.update(
+      chat.id,
+      (value) {
+        value.last_message = chat.last_message ?? value.last_message;
+        return value;
+      },
+      ifAbsent: () => t.UpdateChatLastMessage(
+        chat_id: chat.id,
+        positions: chat.positions,
+        last_message: chat.last_message,
+      ),
+    );
+    if (_timerforLoadChatResult) {
+      idleTimer?.cancel();
+      idleTimer = Timer(idleDuration, _emitForLoadChatResult);
+    }
   }
 
   void _updateNeedLoaded(List<t.ChatPosition> positions) {
