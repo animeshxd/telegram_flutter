@@ -32,7 +32,6 @@ extension MessageContentExt on MessageContent {
         MessageChatJoinByRequest ||
         MessageChatAddMembers ||
         MessageChatDeleteMember ||
-        MessageGame ||
         MessageGameScore ||
         MessageChatChangeTitle ||
         MessageChatSetMessageAutoDeleteTime =>
