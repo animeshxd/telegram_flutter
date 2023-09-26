@@ -42,6 +42,14 @@ class ChatCubit extends Cubit<ChatState> {
         lastMessages: lastMessages,
         users: users,
       );
+  final idleDuration = const Duration(milliseconds: 1500);
+  Timer? idleTimer;
+  bool _timerforLoadChatResult = false;
+
+  void _emitForLoadChatResult() {
+    emit(loadedState);
+    _timerforLoadChatResult = false;
+  }
 
   void _debugUpdates(t.Update update) {
     // body unstaged
@@ -73,6 +81,10 @@ class ChatCubit extends Cubit<ChatState> {
               last_message: chat.last_message,
             ),
           );
+          if (_timerforLoadChatResult) {
+            idleTimer?.cancel();
+            idleTimer = Timer(idleDuration, _emitForLoadChatResult);
+          }
         },
       ),
 
@@ -196,6 +208,8 @@ class ChatCubit extends Cubit<ChatState> {
 
   void loadChats(t.ChatList chatListType) async {
     emit(ChatLoading());
+    _timerforLoadChatResult = true;
+
     try {
       await _setTotalChatCountIfNull(chatListType);
       if (_isTotalChatNull(chatListType)) emit(ChatLoadedFailed());
@@ -210,12 +224,13 @@ class ChatCubit extends Cubit<ChatState> {
 
       try {
         await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
-        emit(loadedState);
+        // emit(loadedState);
       } catch (_) {
         logger.shout('chat already loaded');
-        return emit(loadedState);
+        // return emit(loadedState);
       }
     } on Exception catch (e) {
+      _timerforLoadChatResult = false;
       debugPrint(e.toString());
       emit(ChatLoadedFailed());
     }
