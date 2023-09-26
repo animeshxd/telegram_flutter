@@ -30,13 +30,19 @@ final class ChatLoaded extends ChatState {
 
   Future<Chat> getChat(int id, TdlibEventController tdlib) async {
     var chat = chats[id];
-    chat ??= (await tdlib.send<t.Chat>(t.GetChat(chat_id: id))).mod;
+    if (chat == null) {
+      chat = (await tdlib.send<t.Chat>(t.GetChat(chat_id: id))).mod;
+      chats[id];
+    }
     return chat;
   }
 
   Future<t.User> getUser(int id, TdlibEventController tdlib) async {
     var user = users[id];
-    user ??= (await tdlib.send<t.User>(t.GetUser(user_id: id)));
+    if (user == null) {
+      user = (await tdlib.send<t.User>(t.GetUser(user_id: id)));
+      users[id] = user;
+    }
     return user;
   }
 
