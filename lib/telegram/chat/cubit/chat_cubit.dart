@@ -225,13 +225,17 @@ class ChatCubit extends Cubit<ChatState> {
       try {
         await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
         // emit(loadedState);
-      } catch (_) {
-        logger.shout('chat already loaded');
+      } on TelegramError catch (e) {
+        if (e.code == 404) {
+          logger.shout('chat already loaded', e);
+        } else {
+          rethrow;
+        }
         // return emit(loadedState);
       }
     } on Exception catch (e) {
       _timerforLoadChatResult = false;
-      debugPrint(e.toString());
+      logger.shout(e, e);
       emit(ChatLoadedFailed());
     }
   }
