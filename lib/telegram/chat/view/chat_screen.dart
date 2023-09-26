@@ -45,7 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
             title: const Text("Telegram"),
             leading: context.canPop()
                 ? IconButton(
-                    onPressed: () => context.pop(),
+                    onPressed: () => Navigator.maybeOf(context)?.maybePop(),
                     icon: Icon(Icons.adaptive.arrow_back),
                   )
                 : null,
