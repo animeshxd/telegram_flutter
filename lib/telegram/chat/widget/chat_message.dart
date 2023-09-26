@@ -220,13 +220,9 @@ class _ChatMessageState extends State<ChatMessage> {
             text: TextSpan(
               style: _textStyleBodySmall,
               children: [
+                if (senderName.isNotEmpty) TextSpan(text: senderName),
                 if (senderName.isNotEmpty)
-                  TextSpan(
-                    text: senderName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                if (senderName.isNotEmpty)
-                  TextSpan(text: isChatActions ? ' ' : " : "),
+                  TextSpan(text: isChatActions ? ' ' : ": "),
                 TextSpan(text: caption.trim().replaceAll('\n', '')),
               ],
             ),
