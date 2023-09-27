@@ -11,6 +11,7 @@ import 'package:tdffi/td.dart' as t;
 import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
+import 'chat_draft_message.dart';
 import 'chat_mentioned_badge.dart';
 import 'chat_message.dart';
 import 'chat_reaction_badge.dart';
@@ -58,8 +59,11 @@ class _ChatListTileState extends State<ChatListTile> {
       subtitle: Align(
         alignment: Alignment.centerLeft,
         child: Obx(() {
-          //TODO: Show draft message if not null
           var message = chat.lastMessage;
+          var draftMessage = chat.draftMessage;
+          if (draftMessage != null) {
+            return ChatDraftMessage(draftMessage: draftMessage);
+          }
           if (message == null) return const SizedBox.shrink();
           return ChatMessage(
             chat: chat,
