@@ -113,6 +113,7 @@ class ChatCubit extends Cubit<ChatState> {
       (value) => value.update(
         draftMessage: event.draft_message,
         positions: event.positions,
+        overrideDraftMessage: event.draft_message == null,
       ),
       ifAbsent: () => Chat.unknown(
         id: event.chat_id,

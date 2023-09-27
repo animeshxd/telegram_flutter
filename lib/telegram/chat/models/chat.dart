@@ -51,6 +51,7 @@ class Chat extends Equatable {
     int? unreadMessageCount,
     t.Message? lastMessage,
     t.DraftMessage? draftMessage,
+    bool overrideDraftMessage = false,
   }) {
     this.title = title ?? this.title;
     this.type = type ?? this.type;
@@ -62,7 +63,8 @@ class Chat extends Equatable {
     this.unreadReactionCount.value =
         unreadReactionCount ?? this.unreadReactionCount.value;
     this.lastMessage = lastMessage ?? this.lastMessage;
-    this.draftMessage = draftMessage;
+    this.draftMessage =
+        overrideDraftMessage ? draftMessage : draftMessage ?? this.draftMessage;
 
     // update positions
     var map = Map.fromEntries(
