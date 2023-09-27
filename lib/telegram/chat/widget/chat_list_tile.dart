@@ -58,6 +58,7 @@ class _ChatListTileState extends State<ChatListTile> {
       subtitle: Align(
         alignment: Alignment.centerLeft,
         child: Obx(() {
+          //TODO: Show draft message if not null
           var message = chat.lastMessage;
           if (message == null) return const SizedBox.shrink();
           return ChatMessage(

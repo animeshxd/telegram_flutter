@@ -20,6 +20,7 @@ extension ChatModExt on Chat {
       unreadReactionCount: unread_reaction_count,
       unreadMessageCount: unread_count,
       lastMessage: last_message,
+      draftMessage: draft_message,
     );
   }
 }

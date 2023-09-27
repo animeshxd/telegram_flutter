@@ -17,6 +17,11 @@ class Chat extends Equatable {
   set lastMessage(t.Message? message) => _lastMessage.value = message;
   t.Message? get lastMessage => _lastMessage.value;
 
+  final _draftMessage = Rxn<t.DraftMessage>();
+
+  set draftMessage(t.DraftMessage? message) => _draftMessage.value = message;
+  t.DraftMessage? get draftMessage => _draftMessage.value;
+
   Chat({
     required this.id,
     required this.title,
@@ -27,11 +32,13 @@ class Chat extends Equatable {
     required int unreadReactionCount,
     required int unreadMessageCount,
     required t.Message? lastMessage,
+    required t.DraftMessage? draftMessage,
   }) {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
     this.unreadMessageCount.value = unreadMessageCount;
     this.lastMessage = lastMessage;
+    this.draftMessage = draftMessage;
   }
 
   Chat update({
@@ -43,6 +50,7 @@ class Chat extends Equatable {
     int? unreadReactionCount,
     int? unreadMessageCount,
     t.Message? lastMessage,
+    t.DraftMessage? draftMessage,
   }) {
     this.title = title ?? this.title;
     this.type = type ?? this.type;
@@ -54,6 +62,7 @@ class Chat extends Equatable {
     this.unreadReactionCount.value =
         unreadReactionCount ?? this.unreadReactionCount.value;
     this.lastMessage = lastMessage ?? this.lastMessage;
+    this.draftMessage = draftMessage;
 
     // update positions
     var map = Map.fromEntries(
@@ -77,6 +86,7 @@ class Chat extends Equatable {
       unreadMessageCount: chat.unread_count,
       unreadReactionCount: chat.unread_reaction_count,
       lastMessage: chat.last_message,
+      draftMessage: chat.draft_message,
     );
   }
 
@@ -89,11 +99,13 @@ class Chat extends Equatable {
     int unreadReactionCount = 0,
     int unreadMessageCount = 0,
     t.Message? lastMessage,
+    t.DraftMessage? draftMessage,
   }) : type = ChatTypeUnknown() {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
     this.unreadMessageCount.value = unreadMessageCount;
     this.lastMessage = lastMessage;
+    this.draftMessage = draftMessage;
   }
 
   @override

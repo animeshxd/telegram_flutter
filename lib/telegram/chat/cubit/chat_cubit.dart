@@ -61,6 +61,9 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateChatLastMessage>()
           .listen(_onUpdateChatLastMessage),
+      tdlib.updates
+          .whereType<t.UpdateChatDraftMessage>()
+          .listen(_onUpdateChatDraftMessage),
       tdlib.updates.whereType<t.UpdateChatTitle>().listen(_onUpdateChatTitle),
       tdlib.updates
           .whereType<t.UpdateChatPosition>()
@@ -102,6 +105,21 @@ class ChatCubit extends Cubit<ChatState> {
           .whereType<t.UpdateUser>()
           .listen((user) => users[user.user.id] = user.user),
     ]);
+  }
+
+  void _onUpdateChatDraftMessage(t.UpdateChatDraftMessage event) {
+    chats.update(
+      event.chat_id,
+      (value) => value.update(
+        draftMessage: event.draft_message,
+        positions: event.positions,
+      ),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        draftMessage: event.draft_message,
+        positions: event.positions,
+      ),
+    );
   }
 
   bool _whereChatMemberStatusBannedOrLeft(t.ChatMemberStatus status) {
