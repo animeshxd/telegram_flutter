@@ -12,6 +12,11 @@ class Chat extends Equatable {
   final RxInt unreadMentionCount = 0.obs;
   final RxInt unreadReactionCount = 0.obs;
   final RxInt unreadMessageCount = 0.obs;
+  final _lastMessage = Rxn<t.Message>();
+
+  set lastMessage(t.Message? message) => _lastMessage.value = message;
+  t.Message? get lastMessage => _lastMessage.value;
+
   Chat({
     required this.id,
     required this.title,
@@ -21,10 +26,12 @@ class Chat extends Equatable {
     required int unreadMentionCount,
     required int unreadReactionCount,
     required int unreadMessageCount,
+    required t.Message? lastMessage,
   }) {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
     this.unreadMessageCount.value = unreadMessageCount;
+    this.lastMessage = lastMessage;
   }
 
   Chat update({
@@ -35,6 +42,7 @@ class Chat extends Equatable {
     int? unreadMentionCount,
     int? unreadReactionCount,
     int? unreadMessageCount,
+    t.Message? lastMessage,
   }) {
     this.title = title ?? this.title;
     this.type = type ?? this.type;
@@ -45,6 +53,7 @@ class Chat extends Equatable {
         unreadMessageCount ?? this.unreadMessageCount.value;
     this.unreadReactionCount.value =
         unreadReactionCount ?? this.unreadReactionCount.value;
+    this.lastMessage = lastMessage ?? this.lastMessage;
 
     // update positions
     var map = Map.fromEntries(
@@ -67,6 +76,7 @@ class Chat extends Equatable {
       unreadMentionCount: chat.unread_mention_count,
       unreadMessageCount: chat.unread_count,
       unreadReactionCount: chat.unread_reaction_count,
+      lastMessage: chat.last_message,
     );
   }
 
@@ -78,10 +88,12 @@ class Chat extends Equatable {
     int unreadMentionCount = 0,
     int unreadReactionCount = 0,
     int unreadMessageCount = 0,
+    t.Message? lastMessage,
   }) : type = ChatTypeUnknown() {
     this.unreadMentionCount.value = unreadMentionCount;
     this.unreadReactionCount.value = unreadReactionCount;
     this.unreadMessageCount.value = unreadMessageCount;
+    this.lastMessage = lastMessage;
   }
 
   @override

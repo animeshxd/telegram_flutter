@@ -57,18 +57,15 @@ class _ChatListTileState extends State<ChatListTile> {
       ),
       subtitle: Align(
         alignment: Alignment.centerLeft,
-        child: ObxValue(
-          (data) {
-            var message = data[chat.id]?.last_message;
-            if (message == null) return const SizedBox.shrink();
-            return ChatMessage(
-              chat: chat,
-              message: message,
-              state: state,
-            );
-          },
-          state.lastMessages,
-        ),
+        child: Obx(() {
+          var message = chat.lastMessage;
+          if (message == null) return const SizedBox.shrink();
+          return ChatMessage(
+            chat: chat,
+            message: message,
+            state: state,
+          );
+        }),
       ),
       trailing: trailing,
       onTap: _debug,

@@ -16,7 +16,6 @@ final class ChatLoaded extends ChatState {
   final Map<Type, int> needLoaded;
   final RxMap<int, Chat> chats;
   final RxMap<int, t.User> users;
-  final RxMap<int, t.UpdateChatLastMessage> lastMessages;
   final RxSet<int> ignoredChats;
 
   const ChatLoaded({
@@ -25,7 +24,6 @@ final class ChatLoaded extends ChatState {
     required this.chats,
     required this.ignoredChats,
     required this.users,
-    required this.lastMessages,
   });
 
   Future<Chat> getChat(int id, TdlibEventController tdlib) async {
@@ -52,6 +50,5 @@ final class ChatLoaded extends ChatState {
         needLoaded,
         chats.length,
         ignoredChats.length,
-        lastMessages.length,
       ];
 }

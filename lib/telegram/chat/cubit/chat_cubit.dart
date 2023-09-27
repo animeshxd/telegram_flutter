@@ -31,14 +31,11 @@ class ChatCubit extends Cubit<ChatState> {
   final users = <int, t.User>{}.obs;
   var ignoredChats = <int>{}.obs;
 
-  final lastMessages = <int, t.UpdateChatLastMessage>{}.obs;
-
   ChatLoaded get loadedState => ChatLoaded(
         totalChats: _totalChats,
         needLoaded: _needLoaded,
         chats: chats,
         ignoredChats: ignoredChats,
-        lastMessages: lastMessages,
         users: users,
       );
   final idleDuration = const Duration(milliseconds: 1500);
@@ -169,8 +166,18 @@ class ChatCubit extends Cubit<ChatState> {
     if (!chats.containsKey(event.chat_id)) {
       _updateNeedLoaded(event.positions);
     }
-    lastMessages[event.chat_id] = event;
-    if (event.last_message?.is_outgoing ?? false) return;
+    chats.update(
+      event.chat_id,
+      (value) => value.update(
+        positions: event.positions,
+        lastMessage: event.last_message,
+      ),
+      ifAbsent: () => Chat.unknown(
+        id: event.chat_id,
+        positions: event.positions,
+        lastMessage: event.last_message,
+      ),
+    );
   }
 
   void _onNewChat(t.Chat chat) {
@@ -179,18 +186,6 @@ class ChatCubit extends Cubit<ChatState> {
       chat.id,
       (value) => value.updateFromTdChat(chat),
       ifAbsent: () => chat.mod,
-    );
-    lastMessages.update(
-      chat.id,
-      (value) {
-        value.last_message = chat.last_message ?? value.last_message;
-        return value;
-      },
-      ifAbsent: () => t.UpdateChatLastMessage(
-        chat_id: chat.id,
-        positions: chat.positions,
-        last_message: chat.last_message,
-      ),
     );
     if (_timerforLoadChatResult) {
       idleTimer?.cancel();
