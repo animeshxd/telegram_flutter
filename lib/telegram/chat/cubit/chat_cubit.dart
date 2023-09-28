@@ -230,9 +230,10 @@ class ChatCubit extends Cubit<ChatState> {
     _timerforLoadChatResult = true;
 
     try {
-      await _setTotalChatCountIfNull(chatListType);
+      await _setTotalChatCountIfNullWithAndNeedLoaded(chatListType);
       if (_isTotalChatNull(chatListType)) emit(ChatLoadedFailed());
-      var needLoaded = _totalChats[chatListType.runtimeType]!;
+      updateChatNeedLoadedFromChatList();
+      var needLoaded = _needLoaded[chatListType.runtimeType] ?? 0;
       if (needLoaded == 0) {
         return emit(loadedState);
       }
@@ -259,7 +260,33 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  Future<void> _setTotalChatCountIfNull(t.ChatList chatListType) async {
+  void updateChatNeedLoadedFromChatList() {
+    var iter = chats.values.map((e) => e.positions);
+  
+    var chatListMainCount = iter
+        .where((position) =>
+            position.whereType<t.ChatListMain>().firstOrNull != null)
+        .length;
+    var chatListArchiveCount = iter
+        .where((position) =>
+            position.whereType<t.ChatListArchive>().firstOrNull != null)
+        .length;
+
+    var chatListFolderCount = iter
+        .where((position) =>
+            position.whereType<t.ChatListFolder>().firstOrNull != null)
+        .length;
+
+    _needLoaded[t.ChatListMain] =
+        (_totalChats[t.ChatListMain] ?? 0) - chatListMainCount;
+    _needLoaded[t.ChatListArchive] =
+        (_totalChats[t.ChatListArchive] ?? 0) - chatListArchiveCount;
+    _needLoaded[t.ChatListFolder] =
+        (_totalChats[t.ChatListFolder] ?? 0) - chatListFolderCount;
+  }
+
+  Future<void> _setTotalChatCountIfNullWithAndNeedLoaded(
+      t.ChatList chatListType) async {
     if (_isTotalChatNull(chatListType)) {
       try {
         var chats = await tdlib.send<t.Chats>(t.GetChats(
