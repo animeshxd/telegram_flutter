@@ -34,7 +34,6 @@ class OtpField extends StatelessWidget {
         color: Theme.of(context).colorScheme.secondary,
       ),
     );
-    // debugPrint(size.width.toString());))
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [

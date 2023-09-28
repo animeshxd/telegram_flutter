@@ -13,6 +13,5 @@ void main() {
   }
 
   databaseFactory = databaseFactoryFfi;
-  // Logger.root.onRecord.listen((event) => debugPrint(event.message));
   runApp(const MainApp());
 }

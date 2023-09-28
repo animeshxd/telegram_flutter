@@ -36,7 +36,6 @@ class DownloadProfilePhoto {
   }
 
   void downloadFile(File? file) async {
-    // debugPrint(file?.local.toString());
     if (file == null) return;
     if (file.local.is_downloading_completed ||
         file.local.is_downloading_active) {

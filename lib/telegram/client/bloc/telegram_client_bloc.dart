@@ -21,17 +21,15 @@ class TelegramClientBloc
     on<InitilizeClient>((event, emit) async {
       if (!initilized || event.force) {
         await client.execute(SetLogVerbosityLevel(new_verbosity_level: 0));
-        debugPrint("Initilizing Client");
+        logger.fine("Initilizing Client");
         if (kDebugMode) {
           var oldId = (await _prefs).getInt('client');
           if (oldId != null) {
             client.clientId = oldId;
           }
           client.sendAsync(Close());
-          // debugPrint(client.clientId.toString());
           client.clientId = client.td_create_client_id();
           (await _prefs).setInt('client', client.clientId);
-          // debugPrint(client.clientId.toString());
         }
         await client.start();
         initilized = true;
@@ -57,7 +55,7 @@ class TelegramClientBloc
   @override
   void onChange(Change<TelegramClientState> change) {
     super.onChange(change);
-    debugPrint(change.toString());
+    logger.fine(change.toString());
   }
 }
 

@@ -6,8 +6,6 @@ class ChatDraftMessage extends StatelessWidget {
   final t.DraftMessage draftMessage;
   @override
   Widget build(BuildContext context) {
-    debugPrint(draftMessage.toString());
-    debugPrint(draftMessage.input_message_text.inputMessageText?.text.text);
     return RichText(
       overflow: TextOverflow.ellipsis,
       text: TextSpan(

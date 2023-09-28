@@ -19,7 +19,6 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   TdlibEventController client;
 
   AuthBloc(this.client) : super(AuthInitial()) {
-    // debugPrint("Client: ${client.hashCode}");
     on<InitilizeAuthEvent>((event, emit) {
       client.updates
           .whereType<UpdateAuthorizationState>()
@@ -156,7 +155,7 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   @override
   Future<void> close() async {
     await client.destroy();
-    debugPrint("client closed");
+    logger.fine("client closed");
     super.close();
   }
 }

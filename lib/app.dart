@@ -48,13 +48,11 @@ class _MainAppState extends State<MainApp> {
   @override
   void dispose() {
     super.dispose();
-    debugPrint("dispose called");
     _photoDownloader.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("build called");
     return MultiBlocAndRepositoryProvider(
       repositories: [
         RepositoryProvider.value(value: _tdlib),

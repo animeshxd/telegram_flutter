@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logging/logging.dart';
 import 'package:tdffi/td.dart' as t;
 import 'phone_number_screen.dart';
 
 import '../../bloc/auth_bloc.dart';
 import '../widgets/otp_field.dart';
 import '../widgets/phone_number_field.dart';
+
+var logger = Logger('OTPPage');
 
 class OTPPage extends StatefulWidget {
   static const subpath = "otp";
@@ -41,7 +44,7 @@ class _OTPPageState extends State<OTPPage> {
     otpLenght ??= codeType.authenticationCodeTypeCall?.length;
     otpLenght ??= codeType.authenticationCodeTypeMissedCall?.length;
     otpLenght ??= codeType.authenticationCodeTypeFlashCall?.pattern.length;
-    debugPrint(widget.codeInfo.toString());
+    logger.fine(widget.codeInfo.toString());
 
     messages = switch (codeType.runtimeType) {
       t.AuthenticationCodeTypeCall => [

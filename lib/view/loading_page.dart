@@ -25,7 +25,6 @@ class _LoadingPageState extends State<LoadingPage> {
     tdlib = context.read();
     client = context.read();
     auth = context.read();
-    // debugPrint(tdlib.clientId.toString());
     client.add(const InitilizeClient());
   }
 
