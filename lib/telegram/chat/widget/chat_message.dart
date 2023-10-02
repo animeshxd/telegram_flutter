@@ -128,7 +128,7 @@ class _ChatMessageState extends State<ChatMessage> {
     }
   }
 
-  Future<String> _getCaptionText(t.Message message, Chat chat) async {
+  Future<String?> _getCaptionText(t.Message message, Chat chat) async {
     var content = message.content;
     return switch (content.runtimeType) {
       t.MessageAudio => content.messageAudio!.caption.text,
@@ -194,7 +194,7 @@ class _ChatMessageState extends State<ChatMessage> {
     }
     if (message.is_outgoing && isChatActions) senderName = 'You';
 
-    String caption = await _getCaptionText(message, chat);
+    String caption = await _getCaptionText(message, chat) ?? '${message.content.runtimeType}';
 
     var icon = switch (content.runtimeType) {
       t.MessageAudio => Icons.audio_file,
