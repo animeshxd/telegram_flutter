@@ -10,16 +10,16 @@ import '../controller/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../../auth/bloc/auth_bloc.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatListScreen extends StatefulWidget {
   final AuthStateCurrentAccountReady? state;
-  const ChatScreen({super.key, this.state, required this.chatListType});
+  const ChatListScreen({super.key, this.state, required this.chatListType});
   static const path = '/chat';
   final t.ChatList chatListType;
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatListScreenState extends State<ChatListScreen> {
   late final TdlibEventController tdlib;
   late final DownloadProfilePhoto profilePhotoController;
   t.ChatList get chatListType => widget.chatListType;
