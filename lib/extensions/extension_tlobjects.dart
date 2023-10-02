@@ -36,7 +36,9 @@ extension MessageContentExt on MessageContent {
         MessageChatDeleteMember ||
         MessageGameScore ||
         MessageChatChangeTitle ||
-        MessageChatSetMessageAutoDeleteTime =>
+        MessageChatSetMessageAutoDeleteTime ||
+        MessageChatChangePhoto ||
+        MessageChatDeletePhoto =>
           true,
         _ => false
       };

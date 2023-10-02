@@ -152,7 +152,9 @@ class _ChatMessageState extends State<ChatMessage> {
       t.MessageChatJoinByRequest => "'s join request accepted by admin",
       t.MessageChatAddMembers => await _getMessageChatAddMembers(message),
       t.MessageChatDeleteMember => await _getMessageChatDeleteMember(message),
-      _ => ''
+      t.MessageChatChangePhoto => 'updated chat photo',
+      t.MessageChatDeletePhoto => 'removed chat photo',
+      _ => null 
     };
   }
 
