@@ -46,3 +46,4 @@ app.*.map.json
 tdffi
 intl_phone_field
 lib/**/*.json
+debug_snippets.txt
