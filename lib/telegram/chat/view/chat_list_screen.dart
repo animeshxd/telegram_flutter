@@ -34,67 +34,64 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider.value(
-      value: profilePhotoController,
-      child: BlocListener<AuthBloc, AuthState>(
-        listenWhen: (previous, current) =>
-            current is! AuthStateCurrentAccountReady,
-        listener: (context, state) => state.doRoute(context),
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text("Telegram"),
-            leading: context.canPop()
-                ? IconButton(
-                    onPressed: () => Navigator.maybeOf(context)?.maybePop(),
-                    icon: Icon(Icons.adaptive.arrow_back),
-                  )
-                : null,
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          current is! AuthStateCurrentAccountReady,
+      listener: (context, state) => state.doRoute(context),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Telegram"),
+          leading: context.canPop()
+              ? IconButton(
+                  onPressed: () => Navigator.maybeOf(context)?.maybePop(),
+                  icon: Icon(Icons.adaptive.arrow_back),
+                )
+              : null,
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: const [DrawerHeader(child: Text(''))],
           ),
-          drawer: Drawer(
-            child: ListView(
-              children: const [DrawerHeader(child: Text(''))],
-            ),
-          ),
-          body: Center(
-            child: BlocBuilder<ChatCubit, ChatState>(
-              builder: (context, state) {
-                if (state is ChatLoadedFailed) {
-                  return ErrorWidget.withDetails(message: "ChatLoadedFailed");
-                }
+        ),
+        body: Center(
+          child: BlocBuilder<ChatCubit, ChatState>(
+            builder: (context, state) {
+              if (state is ChatLoadedFailed) {
+                return ErrorWidget.withDetails(message: "ChatLoadedFailed");
+              }
 
-                if (state is ChatLoaded) {
-                  // .where((element) => element.title.isNotEmpty)
-                  // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
+              if (state is ChatLoaded) {
+                // .where((element) => element.title.isNotEmpty)
+                // chats.sort((a, b) => b.unread_count.compareTo(a.unread_count));
 
-                  return Obx(() {
-                    var ignoredChats = state.ignoredChats;
-                    var chats = state.chats.entries
-                        .where((e) =>
-                            _whereChatIsNotInteracted(e.value, ignoredChats))
-                        .where(_whereChatHasCurrentChatListType)
-                        .where(_whereChatIsNotMe)
-                        .map((e) => e.value)
-                        .toList();
-                    _sortChatsByPosition(chats);
-                    return ListView.builder(
-                      addAutomaticKeepAlives: false,
-                      itemCount: chats.length,
-                      itemBuilder: (context, index) {
-                        var chat = chats[index];
-                        profilePhotoController.downloadFile(chat.photo?.small);
-                        return ChatListTile(
-                          chat: chat,
-                          state: state,
-                          chatListType: chatListType,
-                        );
-                      },
-                    );
-                  });
-                }
+                return Obx(() {
+                  var ignoredChats = state.ignoredChats;
+                  var chats = state.chats.entries
+                      .where((e) =>
+                          _whereChatIsNotInteracted(e.value, ignoredChats))
+                      .where(_whereChatHasCurrentChatListType)
+                      .where(_whereChatIsNotMe)
+                      .map((e) => e.value)
+                      .toList();
+                  _sortChatsByPosition(chats);
+                  return ListView.builder(
+                    addAutomaticKeepAlives: false,
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      var chat = chats[index];
+                      profilePhotoController.downloadFile(chat.photo?.small);
+                      return ChatListTile(
+                        chat: chat,
+                        state: state,
+                        chatListType: chatListType,
+                      );
+                    },
+                  );
+                });
+              }
 
-                return const CircularProgressIndicator();
-              },
-            ),
+              return const CircularProgressIndicator();
+            },
           ),
         ),
       ),
