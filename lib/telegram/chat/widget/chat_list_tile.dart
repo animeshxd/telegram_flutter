@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
-import '../controller/download_profile_photo.dart';
+import '../../profile/services/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
 import 'chat_draft_message.dart';
