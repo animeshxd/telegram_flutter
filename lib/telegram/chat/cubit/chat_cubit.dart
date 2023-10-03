@@ -104,7 +104,13 @@ class ChatCubit extends Cubit<ChatState> {
       tdlib.updates
           .whereType<t.UpdateUser>()
           .listen((user) => users[user.user.id] = user.user),
+      tdlib.updates.whereType<t.UpdateChatPhoto>().listen(_onUpdateChatPhoto),
     ]);
+  }
+
+  void _onUpdateChatPhoto(t.UpdateChatPhoto event) {
+    chats[event.chat_id]?.photo = event.photo;
+    chats.refresh();
   }
 
   void _onUpdateChatDraftMessage(t.UpdateChatDraftMessage event) {
