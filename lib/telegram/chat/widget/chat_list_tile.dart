@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
@@ -81,36 +82,68 @@ class _ChatListTileState extends State<ChatListTile> {
     //unstaged body
   }
 
-  Widget get trailing => Obx(() {
-        if (chat.unreadMentionCount.value > 0) {
-          return const ChatMentionedBadge();
-        }
+  String formatDateOfLastMessage(int? unixTime) {
+    // TODO: may seperate it
+    if (unixTime == null || unixTime == 0) return '';
+    var dateTime = DateTime.fromMillisecondsSinceEpoch(unixTime * 1000);
+    var dateNow = DateTime.now();
+    var timeDiff = dateTime.difference(dateNow);
+    if (timeDiff.inDays < -6) {
+      return DateFormat("d/MM/yy").format(dateTime);
+    } else if (timeDiff.inDays == 0) {
+      return DateFormat.jm().format(dateTime);
+    } else {
+      return DateFormat("EEE").format(dateTime);
+    }
+  }
 
-        if (chat.unreadReactionCount.value > 0) {
-          return const ChatReactionBadge();
-        }
-        var count = chat.unreadMessageCount.value;
-        if (count == 0) {
-          var isPinned = chat.positions
-              .where((element) =>
-                  element.list.runtimeType == widget.chatListType.runtimeType)
-              .any((element) => element.is_pinned);
-          if (isPinned) {
-            return Transform.rotate(
-              angle: 1,
-              child: const Icon(
-                Icons.push_pin,
-                size: 16,
-              ),
-            );
+  Widget get trailing {
+    var lastMessage = chat.lastMessage;
+    String dateFormatOfLastMessage = '';
+
+    if (lastMessage != null) {
+      dateFormatOfLastMessage = formatDateOfLastMessage(
+        lastMessage.edit_date != 0 ? lastMessage.edit_date : lastMessage.date,
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (dateFormatOfLastMessage.isNotEmpty) Text(dateFormatOfLastMessage),
+        Obx(() {
+          if (chat.unreadMentionCount.value > 0) {
+            return const ChatMentionedBadge();
           }
-          return const SizedBox.shrink();
-        }
-        return Badge(
-          label: Text(count.toString()),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        );
-      });
+
+          if (chat.unreadReactionCount.value > 0) {
+            return const ChatReactionBadge();
+          }
+          var count = chat.unreadMessageCount.value;
+          if (count == 0) {
+            var isPinned = chat.positions
+                .where((element) =>
+                    element.list.runtimeType == widget.chatListType.runtimeType)
+                .any((element) => element.is_pinned);
+            if (isPinned) {
+              return Transform.rotate(
+                angle: 1,
+                child: const Icon(
+                  Icons.push_pin,
+                  size: 16,
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }
+          return Badge(
+            label: Text(count.toString()),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          );
+        }),
+      ],
+    );
+  }
 
   Future<Widget> titleW() async {
     var title = chat.title;
