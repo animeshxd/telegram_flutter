@@ -136,8 +136,8 @@ class _ChatListTileState extends State<ChatListTile> {
             }
             return const SizedBox.shrink();
           }
-          return Badge(
-            label: Text(count.toString()),
+          return Badge.count(
+            count: count,
             backgroundColor: Theme.of(context).colorScheme.primary,
           );
         }),
