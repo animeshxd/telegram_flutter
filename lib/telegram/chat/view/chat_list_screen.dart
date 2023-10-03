@@ -123,14 +123,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
       var a0 = a.positions
           .where((p) => p.list.runtimeType == chatListType.runtimeType);
-      var bIsPinned = b0.any((p) => p.is_pinned);
-      var aIsPinned = a0.any((p) => p.is_pinned);
-
-      if (bIsPinned) return 1;
-      if (aIsPinned) return -1;
 
       var b1 = b0.map((e) => e.order).map(int.parse).firstOrNull ?? 0;
       var a1 = a0.map((e) => e.order).map(int.parse).firstOrNull ?? 0;
+
+      var bIsPinned = b0.any((p) => p.is_pinned);
+      var aIsPinned = a0.any((p) => p.is_pinned);
+
+      if (bIsPinned && aIsPinned) return b1.compareTo(a1);
+      if (bIsPinned) return 1;
+      if (aIsPinned) return -1;
 
       return b1.compareTo(a1);
     });
