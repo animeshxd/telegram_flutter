@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+
+import '../../auth/widget/auth_route_manager.dart';
 import '../models/chat.dart';
 import '../widget/chat_list_tile.dart';
 import '../../profile/services/download_profile_photo.dart';
@@ -34,10 +36,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) =>
-          current is! AuthStateCurrentAccountReady,
-      listener: (context, state) => state.doRoute(context),
+    return AuthRouteManager(
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Telegram"),
