@@ -12,15 +12,11 @@ final class ChatInitial extends ChatState {}
 final class ChatLoading extends ChatState {}
 
 final class ChatLoaded extends ChatState {
-  final Map<Type, int?> totalChats;
-  final Map<Type, int> needLoaded;
   final RxMap<int, Chat> chats;
   final RxMap<int, t.User> users;
   final RxSet<int> ignoredChats;
 
   const ChatLoaded({
-    required this.totalChats,
-    required this.needLoaded,
     required this.chats,
     required this.ignoredChats,
     required this.users,
@@ -46,8 +42,6 @@ final class ChatLoaded extends ChatState {
 
   @override
   List<Object> get props => [
-        totalChats,
-        needLoaded,
         chats.length,
         ignoredChats.length,
       ];

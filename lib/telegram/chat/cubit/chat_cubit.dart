@@ -15,16 +15,6 @@ part 'chat_state.dart';
 class ChatCubit extends Cubit<ChatState> {
   late var logger = Logger(runtimeType.toString());
   final TdlibEventController tdlib;
-  final _totalChats = <Type, int?>{
-    t.ChatListMain: null,
-    t.ChatListArchive: null,
-    t.ChatListFolder: null,
-  };
-  final _needLoaded = <Type, int>{
-    t.ChatListMain: 0,
-    t.ChatListArchive: 0,
-    t.ChatListFolder: 0
-  };
 
   final _streamSubscriptions = <StreamSubscription>[];
   final chats = <int, Chat>{}.obs;
@@ -32,8 +22,6 @@ class ChatCubit extends Cubit<ChatState> {
   var ignoredChats = <int>{}.obs;
 
   ChatLoaded get loadedState => ChatLoaded(
-        totalChats: _totalChats,
-        needLoaded: _needLoaded,
         chats: chats,
         ignoredChats: ignoredChats,
         users: users,
@@ -188,9 +176,6 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatLastMessage(t.UpdateChatLastMessage event) {
-    if (!chats.containsKey(event.chat_id)) {
-      _updateNeedLoaded(event.positions);
-    }
     chats.update(
       event.chat_id,
       (value) => value.update(
@@ -206,7 +191,6 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onNewChat(t.Chat chat) {
-    _updateNeedLoaded(chat.positions);
     chats.update(
       chat.id,
       (value) => value.updateFromTdChat(chat),
@@ -218,36 +202,10 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  void _updateNeedLoaded(List<t.ChatPosition> positions) {
-    positions.map((element) => element.list.runtimeType).forEach(
-          (element) => _needLoaded.update(
-            element,
-            (value) => value - 1,
-            ifAbsent: () => 0,
-          ),
-        );
-  }
-
-  bool _isTotalChatNull(t.ChatList chatListType) =>
-      _totalChats[chatListType.runtimeType] == null;
-
-  void loadChats(t.ChatList chatListType) async {
+  void loadChats(t.ChatList chatListType, {int limit = 10}) async {
     emit(ChatLoading());
     _timerforLoadChatResult = true;
-
     try {
-      await _setTotalChatCountIfNullWithAndNeedLoaded(chatListType);
-      if (_isTotalChatNull(chatListType)) emit(ChatLoadedFailed());
-      updateChatNeedLoadedFromChatList();
-      var needLoaded = _needLoaded[chatListType.runtimeType] ?? 0;
-      if (needLoaded == 0) {
-        return emit(loadedState);
-      }
-      int limit = 10;
-      if (needLoaded < limit) {
-        limit = needLoaded;
-      }
-
       try {
         await tdlib.send(t.LoadChats(limit: limit, chat_list: chatListType));
         // emit(loadedState);
@@ -263,57 +221,6 @@ class ChatCubit extends Cubit<ChatState> {
       _timerforLoadChatResult = false;
       logger.shout(e, e);
       emit(ChatLoadedFailed());
-    }
-  }
-
-  void updateChatNeedLoadedFromChatList() {
-    var iter = chats.values.map((e) => e.positions);
-  
-    var chatListMainCount = iter
-        .where((position) =>
-            position.whereType<t.ChatListMain>().firstOrNull != null)
-        .length;
-    var chatListArchiveCount = iter
-        .where((position) =>
-            position.whereType<t.ChatListArchive>().firstOrNull != null)
-        .length;
-
-    var chatListFolderCount = iter
-        .where((position) =>
-            position.whereType<t.ChatListFolder>().firstOrNull != null)
-        .length;
-
-    _needLoaded[t.ChatListMain] =
-        (_totalChats[t.ChatListMain] ?? 0) - chatListMainCount;
-    _needLoaded[t.ChatListArchive] =
-        (_totalChats[t.ChatListArchive] ?? 0) - chatListArchiveCount;
-    _needLoaded[t.ChatListFolder] =
-        (_totalChats[t.ChatListFolder] ?? 0) - chatListFolderCount;
-  }
-
-  Future<void> _setTotalChatCountIfNullWithAndNeedLoaded(
-      t.ChatList chatListType) async {
-    if (_isTotalChatNull(chatListType)) {
-      try {
-        var chats = await tdlib.send<t.Chats>(t.GetChats(
-          limit: 20,
-          chat_list: chatListType,
-        ));
-        _totalChats[chatListType.runtimeType] = chats.total_count;
-        _needLoaded[chatListType.runtimeType] = chats.total_count;
-      } on TelegramError catch (e) {
-        if (e.code == 420 && e.message.contains('FLOOD_WAIT_')) {
-          var waittime = int.tryParse(e.message.replaceAll("FLOOD_WAIT_", ""));
-          var chats = await Future.delayed(
-            Duration(seconds: waittime ?? 0),
-            () async => await tdlib.send<t.Chats>(
-              t.GetChats(limit: 1, chat_list: chatListType),
-            ),
-          );
-          _totalChats[chatListType.runtimeType] = chats.total_count;
-          _needLoaded[chatListType.runtimeType] = chats.total_count;
-        }
-      }
     }
   }
 
