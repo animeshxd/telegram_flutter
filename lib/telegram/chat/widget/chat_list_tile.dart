@@ -13,6 +13,7 @@ import '../../profile/services/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
 import 'chat_draft_message.dart';
+import 'chat_label.dart';
 import 'chat_mentioned_badge.dart';
 import 'chat_message.dart';
 import 'chat_reaction_badge.dart';
@@ -154,7 +155,7 @@ class _ChatListTileState extends State<ChatListTile> {
           : Icons.group,
       _ => null
     };
-    Widget? tailing;
+    Widget? label;
 
     //TODO: also check if current logged in user is bot or not
     if (chat.type is t.ChatTypePrivate) {
@@ -170,24 +171,15 @@ class _ChatListTileState extends State<ChatListTile> {
       }
 
       if (user.is_verified) {
-        tailing = const Icon(
+        label = const Icon(
           Icons.check_circle_outline, //TODO: ADD better
           size: 14,
           color: Colors.green,
         );
       }
-
       if (user.is_fake || user.is_scam) {
-        tailing = Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.red),
-            borderRadius: const BorderRadius.all(Radius.circular(3)),
-          ),
-          child: Text(
-            user.is_fake ? 'FAKE' : 'SCAM',
-            style: const TextStyle(fontSize: 8),
-          ),
+        label = ChatLabel(
+          label: user.is_fake ? "FAKE" : "SCAM",
         );
       }
     }
@@ -203,10 +195,10 @@ class _ChatListTileState extends State<ChatListTile> {
               child: Icon(icon, size: 14),
             ),
           if (title.isNotEmpty) Flexible(child: EllipsisText(title)),
-          if (tailing != null)
+          if (label != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
-              child: tailing,
+              child: label,
             ),
         ],
       );
