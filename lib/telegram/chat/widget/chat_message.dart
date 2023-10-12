@@ -208,30 +208,22 @@ class _ChatMessageState extends State<ChatMessage> {
       _ => null
     };
     var iconSize = (_textStyleBodySmall.fontSize ?? 12) + 2;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: RichText(
-            overflow: TextOverflow.ellipsis,
-            text: TextSpan(
-              style: _textStyleBodySmall,
-              children: [
-                if (icon != null)
-                  WidgetSpan(
-                    child: Icon(icon, size: iconSize),
-                  ),
-                if (icon != null) const TextSpan(text: ' '),
-                if (senderName.isNotEmpty) TextSpan(text: senderName),
-                if (senderName.isNotEmpty)
-                  TextSpan(text: isChatActions ? ' ' : ": "),
-                TextSpan(text: caption.trim().replaceAll('\n', '')),
-              ],
+    return RichText(
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: _textStyleBodySmall,
+        children: [
+          if (icon != null)
+            WidgetSpan(
+              child: Icon(icon, size: iconSize),
             ),
-          ),
-        )
-      ],
+          if (icon != null) const TextSpan(text: ' '),
+          if (senderName.isNotEmpty) TextSpan(text: senderName),
+          if (senderName.isNotEmpty)
+            TextSpan(text: isChatActions ? ' ' : ": "),
+          TextSpan(text: caption.trim().replaceAll('\n', '')),
+        ],
+      ),
     );
   }
 }
