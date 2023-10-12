@@ -138,7 +138,7 @@ class _ChatMessageState extends State<ChatMessage> {
       t.MessageText => content.messageText!.text.text,
       t.MessagePoll => content.messagePoll!.poll.question,
       t.MessageSticker => "${content.messageSticker!.sticker.emoji} Sticker",
-      t.MessageGame => '🎮 ${content.messageGame!.game.short_name}',
+      t.MessageGame => content.messageGame!.game.short_name,
       t.MessageGameScore => await _getMessageGameScore(content),
       t.MessageSupergroupChatCreate => "Channel created",
       t.MessageChatChangeTitle =>
@@ -154,7 +154,7 @@ class _ChatMessageState extends State<ChatMessage> {
       t.MessageChatDeleteMember => await _getMessageChatDeleteMember(message),
       t.MessageChatChangePhoto => 'updated chat photo',
       t.MessageChatDeletePhoto => 'removed chat photo',
-      _ => null 
+      _ => null
     };
   }
 
@@ -198,30 +198,31 @@ class _ChatMessageState extends State<ChatMessage> {
 
     var icon = switch (content.runtimeType) {
       t.MessageAudio => Icons.audio_file,
-      t.MessageDocument => Icons.attach_file,
+      t.MessageDocument => Icons.insert_drive_file,
       t.MessagePhoto => Icons.photo,
       t.MessageVideo => Icons.video_file,
       t.MessageCall => Icons.call,
-      t.MessageGameScore => Icons.games,
+      t.MessageGame => Icons.videogame_asset,
+      t.MessageGameScore => Icons.videogame_asset,
       t.MessagePoll => Icons.poll,
       _ => null
     };
-
+    var iconSize = (_textStyleBodySmall.fontSize ?? 12) + 2;
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (icon != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-            child: Icon(icon, size: 17),
-          ),
         Expanded(
           child: RichText(
             overflow: TextOverflow.ellipsis,
             text: TextSpan(
               style: _textStyleBodySmall,
               children: [
+                if (icon != null)
+                  WidgetSpan(
+                    child: Icon(icon, size: iconSize),
+                  ),
+                if (icon != null) const TextSpan(text: ' '),
                 if (senderName.isNotEmpty) TextSpan(text: senderName),
                 if (senderName.isNotEmpty)
                   TextSpan(text: isChatActions ? ' ' : ": "),
