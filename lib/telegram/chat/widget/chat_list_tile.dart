@@ -12,6 +12,7 @@ import 'package:tdffi/td.dart' as t;
 import '../../profile/services/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
+import 'chat_avatar.dart';
 import 'chat_draft_message.dart';
 import 'chat_label.dart';
 import 'chat_mentioned_badge.dart';
@@ -50,33 +51,40 @@ class _ChatListTileState extends State<ChatListTile> {
 
   @override
   Widget build(context) {
-    return ListTile(
-      //TODO: add better download small photo with retry
-      leading: leading(),
-      title: FutureBuilder(
-        initialData: const SizedBox.shrink(),
-        future: titleW(),
-        builder: (_, snapshot) => snapshot.data!,
-      ),
-      subtitle: Align(
-        alignment: Alignment.centerLeft,
-        child: Obx(() {
-          var message = chat.lastMessage;
-          var draftMessage = chat.draftMessage;
-          if (draftMessage != null) {
-            return ChatDraftMessage(draftMessage: draftMessage);
-          }
-          if (message == null) return const SizedBox.shrink();
-          return ChatMessage(
-            chat: chat,
-            message: message,
-            state: state,
+    return FutureBuilder<t.User?>(
+        future: chat.isPrivate
+            ? state.getUser(chat.type.chatTypePrivate!.user_id, _tdlib)
+            : null,
+        builder: (context, snapshot) {
+          var user = snapshot.data;
+          return ListTile(
+            //TODO: add better download small photo with retry
+            leading: leading(chat, user),
+            title: FutureBuilder(
+              initialData: const SizedBox.shrink(),
+              future: titleW(chat, user),
+              builder: (_, snapshot) => snapshot.data!,
+            ),
+            subtitle: Align(
+              alignment: Alignment.centerLeft,
+              child: Obx(() {
+                var message = chat.lastMessage;
+                var draftMessage = chat.draftMessage;
+                if (draftMessage != null) {
+                  return ChatDraftMessage(draftMessage: draftMessage);
+                }
+                if (message == null) return const SizedBox.shrink();
+                return ChatMessage(
+                  chat: chat,
+                  message: message,
+                  state: state,
+                );
+              }),
+            ),
+            trailing: trailing,
+            onTap: _debug,
           );
-        }),
-      ),
-      trailing: trailing,
-      onTap: _debug,
-    );
+        });
   }
 
   void _debug() async {
@@ -146,7 +154,7 @@ class _ChatListTileState extends State<ChatListTile> {
     );
   }
 
-  Future<Widget> titleW() async {
+  Future<Widget> titleW(Chat chat, t.User? user) async {
     var title = chat.title;
     var icon = switch (chat.type.runtimeType) {
       t.ChatTypeBasicGroup => Icons.group,
@@ -157,12 +165,7 @@ class _ChatListTileState extends State<ChatListTile> {
     };
     Widget? label;
 
-    //TODO: also check if current logged in user is bot or not
-    if (chat.type is t.ChatTypePrivate) {
-      var user = state.users[chat.type.chatTypePrivate!.user_id];
-      user ??= await _tdlib.send<t.User>(t.GetUser(user_id: chat.id));
-      // TODO: Fix for bot
-
+    if (user != null) {
       if (user.type is t.UserTypeDeleted) {
         title = 'Deleted Account';
       }
@@ -206,13 +209,35 @@ class _ChatListTileState extends State<ChatListTile> {
     return const SizedBox.shrink();
   }
 
-  Widget leading() {
+  Widget leading(Chat chat, t.User? user) {
+    var peerId = chat.type.chatTypeBasicGroup?.basic_group_id ??
+        chat.type.chatTypePrivate?.user_id ??
+        chat.type.chatTypeSecret?.secret_chat_id ??
+        chat.type.chatTypeSecret?.user_id ??
+        chat.type.chatTypeSupergroup?.supergroup_id ??
+        0;
+    var shortTitle = chat.title
+        .split(" ")
+        .where((element) => element.isNotEmpty)
+        .take(2)
+        .map((e) => e[0])
+        .join();
     var photo = chat.photo?.small;
     if (photo == null) {
-      return Obx(() {
-        var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
-        return _getColorAvatar(chat, chat.title, user);
-      });
+      if (user?.type.userTypeDeleted != null) {
+        return ChatColorAvatar(
+          id: peerId,
+          child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
+        );
+      }
+
+      return ChatColorAvatar(
+        id: peerId,
+        child: Text(
+          shortTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
+      );
     }
 
     Widget? avatar = avatarW(photo.local.path);
@@ -226,70 +251,16 @@ class _ChatListTileState extends State<ChatListTile> {
     return Obx(
       () {
         var data = _downloadProfilePhoto.state[photo.id];
-        var user = state.users[chat.type.chatTypePrivate?.user_id ?? 0];
         return avatarW(data) ??
             avatar ??
-            _getColorAvatar(chat, chat.title, user);
-      },
-    );
-  }
-
-  Widget _getColorAvatar(Chat chat, String title, t.User? user) {
-    List<Color> colors = const [
-      Colors.red,
-      Colors.green,
-      Colors.blue,
-      Colors.purple,
-      Colors.indigo,
-      Colors.deepOrange,
-      Colors.grey,
-      Colors.deepPurpleAccent
-    ];
-    var id = chat.type.chatTypeBasicGroup?.basic_group_id ??
-        chat.type.chatTypePrivate?.user_id ??
-        chat.type.chatTypeSecret?.secret_chat_id ??
-        chat.type.chatTypeSecret?.user_id ??
-        chat.type.chatTypeSupergroup?.supergroup_id;
-    var color = colors[[0, 7, 4, 1, 6, 3, 5][(id! % 7)]];
-    var shortTitle = title
-        .split(" ")
-        .where((element) => element.isNotEmpty)
-        .take(2)
-        .map((e) => e[0])
-        .join();
-    if (shortTitle.isEmpty) {
-      if (user == null) {
-        return FutureBuilder(
-          future: state.getUser(id, _tdlib),
-          builder: (context, snapshot) {
-            if (snapshot.data?.type.userTypeDeleted != null) {
-              return CircleAvatar(
-                backgroundColor: color,
-                child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
-              );
-            }
-            return CircleAvatar(
-              backgroundColor: color,
-              child: const Text("🫥"),
+            ChatColorAvatar(
+              id: peerId,
+              child: Text(
+                shortTitle,
+                style: const TextStyle(color: Colors.white),
+              ),
             );
-          },
-        );
-      }
-
-      if (user.type.userTypeDeleted != null) {
-        return CircleAvatar(
-          backgroundColor: color,
-          child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
-        );
-      }
-    }
-
-    return CircleAvatar(
-      backgroundColor: color,
-      child: Text(
-        shortTitle,
-        style: const TextStyle(color: Colors.white),
-      ),
+      },
     );
   }
 
