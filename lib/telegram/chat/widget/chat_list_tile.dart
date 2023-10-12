@@ -60,11 +60,7 @@ class _ChatListTileState extends State<ChatListTile> {
           return ListTile(
             //TODO: add better download small photo with retry
             leading: leading(chat, user),
-            title: FutureBuilder(
-              initialData: const SizedBox.shrink(),
-              future: titleW(chat, user),
-              builder: (_, snapshot) => snapshot.data!,
-            ),
+            title: titleW(chat, user),
             subtitle: Align(
               alignment: Alignment.centerLeft,
               child: Obx(() {
@@ -154,7 +150,7 @@ class _ChatListTileState extends State<ChatListTile> {
     );
   }
 
-  Future<Widget> titleW(Chat chat, t.User? user) async {
+  Widget titleW(Chat chat, t.User? user) {
     var title = chat.title;
     var icon = switch (chat.type.runtimeType) {
       t.ChatTypeBasicGroup => Icons.group,
