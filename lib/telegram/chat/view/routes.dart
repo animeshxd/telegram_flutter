@@ -24,8 +24,12 @@ var chatRoute = GoRoute(
     ),
     GoRoute(
       path: ChatHistoryScreen.subpath,
-      builder: (context, state) =>
-          ChatHistoryScreen(chat: state.extra as m.Chat),
+      builder: (context, state) {
+        var extra = state.extra as Map<String, dynamic>;
+        m.Chat chat = extra['chat'];
+        User? user = extra['user'];
+        return ChatHistoryScreen(chat: chat, user: user);
+      },
     )
   ],
 );

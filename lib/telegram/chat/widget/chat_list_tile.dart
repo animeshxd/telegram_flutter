@@ -73,7 +73,7 @@ class _ChatListTileState extends State<ChatListTile> {
               }),
             ),
             trailing: trailing,
-            onTap: () => context.push(ChatHistoryScreen.path, extra: chat),
+            onTap: () => context.push(ChatHistoryScreen.path, extra: {'chat': chat, 'user': user}),
           );
         });
   }
