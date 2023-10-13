@@ -1,9 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +7,6 @@ import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 import '../view/chat_history_screen.dart';
 
-import '../../profile/services/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
 import 'chat_avatar.dart';
@@ -39,13 +34,11 @@ class ChatListTile extends StatefulWidget {
 
 class _ChatListTileState extends State<ChatListTile> {
   late final TdlibEventController _tdlib;
-  late final DownloadProfilePhoto _downloadProfilePhoto;
 
   @override
   void initState() {
     super.initState();
     _tdlib = context.read();
-    _downloadProfilePhoto = context.read();
   }
 
   Chat get chat => widget.chat;
@@ -61,7 +54,7 @@ class _ChatListTileState extends State<ChatListTile> {
           var user = snapshot.data;
           return ListTile(
             //TODO: add better download small photo with retry
-            leading: leading(chat, user),
+            leading: ChatAvater(chat: chat, user: user),
             title: titleW(chat, user),
             subtitle: Align(
               alignment: Alignment.centerLeft,
@@ -212,71 +205,5 @@ class _ChatListTileState extends State<ChatListTile> {
       );
     }
     return const SizedBox.shrink();
-  }
-
-  Widget leading(Chat chat, t.User? user) {
-    var peerId = chat.type.chatTypeBasicGroup?.basic_group_id ??
-        chat.type.chatTypePrivate?.user_id ??
-        chat.type.chatTypeSecret?.secret_chat_id ??
-        chat.type.chatTypeSecret?.user_id ??
-        chat.type.chatTypeSupergroup?.supergroup_id ??
-        0;
-    var shortTitle = chat.title
-        .split(" ")
-        .where((element) => element.isNotEmpty)
-        .take(2)
-        .map((e) => e[0])
-        .join();
-    var photo = chat.photo?.small;
-    if (photo == null) {
-      if (user?.type.userTypeDeleted != null) {
-        return ChatColorAvatar(
-          id: peerId,
-          child: const Icon(FontAwesomeIcons.ghost, color: Colors.white),
-        );
-      }
-
-      return ChatColorAvatar(
-        id: peerId,
-        child: Text(
-          shortTitle,
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-    }
-
-    Widget? avatar = avatarW(photo.local.path);
-    if (avatar != null) return avatar;
-    var imageSourceb64 = chat.photo?.minithumbnail?.data;
-    if (imageSourceb64 != null) {
-      var imageSource = base64.decode(imageSourceb64);
-      avatar = CircleAvatar(backgroundImage: MemoryImage(imageSource));
-    }
-
-    return Obx(
-      () {
-        var data = _downloadProfilePhoto.state[photo.id];
-        return avatarW(data) ??
-            avatar ??
-            ChatColorAvatar(
-              id: peerId,
-              child: Text(
-                shortTitle,
-                style: const TextStyle(color: Colors.white),
-              ),
-            );
-      },
-    );
-  }
-
-  Widget? avatarW(
-    String? path,
-  ) {
-    // debugPrint(path);
-    if (path == null) return null;
-    if (path.isEmpty) return null;
-    var file = File(path);
-    if (!file.existsSync()) return null;
-    return CircleAvatar(backgroundImage: FileImage(file));
   }
 }
