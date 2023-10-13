@@ -101,8 +101,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  bool _whereChatIsNotMe(MapEntry<int, Chat> e) =>
-      e.key != me.id;
+  bool _whereChatIsNotMe(MapEntry<int, Chat> e) => e.key != me.id;
 
   bool _whereChatHasCurrentChatListType(MapEntry<int, Chat> e) {
     return e.value.positions
