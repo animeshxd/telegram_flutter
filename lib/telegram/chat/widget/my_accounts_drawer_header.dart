@@ -29,54 +29,77 @@ class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
     super.initState();
     tdlib = context.read();
     downloadProfilePhoto = context.read();
-
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      downloadProfilePhoto.downloadFile(me.profile_photo?.big);
-      return Container(
-        height: MediaQuery.of(context).size.height * .3,
-        decoration: getImageOrColorDecoration(me),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black.withOpacity(.6),
-                Colors.black.withOpacity(.2),
-                Colors.transparent
-              ],
-              begin: AlignmentDirectional.bottomEnd,
-            ),
-          ),
-          padding: const EdgeInsets.only(left: 10, bottom: 10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                me.fullName,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500, color: Colors.white),
-              ),
-              Text(
-                '+${me.phone_number}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w400, color: Colors.white),
-              ),
+      downloadProfilePhoto.downloadFile(me.profile_photo?.small);
+      return userAccountDrawerHeaderFromListTile();
+    });
+  }
+
+  Widget userAccountDrawerHeaderFromListTile() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        leading: ChatAvatar(
+          user: me,
+        ),
+        title: Text(me.fullName),
+        subtitle: Text('+${me.phone_number}'),
+      ),
+    );
+  }
+
+  Container customUserAccountDrawerHeader() {
+    return Container(
+      height: MediaQuery.of(context).size.height * .34,
+      decoration: getImageOrColorDecoration(me),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withOpacity(.6),
+              Colors.black.withOpacity(.2),
+              Colors.transparent
             ],
+            begin: AlignmentDirectional.bottomEnd,
           ),
         ),
-        // switch to decoration
-      );
-    });
+        padding: const EdgeInsets.only(left: 12, bottom: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              me.fullName,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(fontWeight: FontWeight.w500, color: Colors.white),
+            ),
+            Text(
+              '+${me.phone_number}',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w400, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+      // switch to decoration
+    );
+  }
+
+  UserAccountsDrawerHeader userAccountsDrawerHeader() {
+    return UserAccountsDrawerHeader(
+      accountName: Text(me.fullName),
+      accountEmail: Text('+${me.phone_number}'),
+      // decoration: getImageOrColorDecoration(me),
+      currentAccountPicture: ChatAvatar(user: me),
+    );
   }
 
   Decoration? getImageOrColorDecoration(t.User user) {
