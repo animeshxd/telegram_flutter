@@ -114,6 +114,7 @@ class _ChatListTileState extends State<ChatListTile> {
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (dateFormatOfLastMessage.isNotEmpty) Text(dateFormatOfLastMessage),
         Obx(() {
