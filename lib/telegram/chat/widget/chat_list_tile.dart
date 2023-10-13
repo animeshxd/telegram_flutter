@@ -153,22 +153,22 @@ class _ChatListTileState extends State<ChatListTile> {
 
   Widget titleW(Chat chat, t.User? user) {
     var title = chat.title;
-    var icon = switch (chat.type.runtimeType) {
-      t.ChatTypeBasicGroup => Icons.group,
-      t.ChatTypeSupergroup => chat.type.chatTypeSupergroup!.is_channel
-          ? FontAwesomeIcons.bullhorn
-          : Icons.group,
-      _ => null
-    };
+    // var icon = switch (chat.type.runtimeType) {
+    //   t.ChatTypeBasicGroup => FontAwesomeIcons.userGroup,
+    //   t.ChatTypeSupergroup => chat.type.chatTypeSupergroup!.is_channel
+    //       ? FontAwesomeIcons.bullhorn
+    //       : FontAwesomeIcons.userGroup,
+    //   _ => null
+    // };
     Widget? label;
 
     if (user != null) {
       if (user.type is t.UserTypeDeleted) {
         title = 'Deleted Account';
       }
-      if (user.type is t.UserTypeBot) {
-        icon = FontAwesomeIcons.robot;
-      }
+      // if (user.type is t.UserTypeBot) {
+      //   icon = FontAwesomeIcons.robot;
+      // }
 
       if (user.is_verified) {
         label = Icon(
@@ -184,16 +184,16 @@ class _ChatListTileState extends State<ChatListTile> {
       }
     }
 
-    if (icon != null || title.isNotEmpty) {
+    if (/*icon != null ||*/ title.isNotEmpty) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (icon != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Icon(icon, size: 14),
-            ),
+          // if (icon != null)
+          //   Padding(
+          //     padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+          //     child: Icon(icon, size: 10),
+          //   ),
           if (title.isNotEmpty) Flexible(child: EllipsisText(title)),
           if (label != null)
             Padding(
