@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+import '../view/chat_history_screen.dart';
 
 import '../../profile/services/download_profile_photo.dart';
 import '../cubit/chat_cubit.dart';
@@ -78,7 +80,7 @@ class _ChatListTileState extends State<ChatListTile> {
               }),
             ),
             trailing: trailing,
-            onTap: _debug,
+            onTap: () => context.push(ChatHistoryScreen.path, extra: chat),
           );
         });
   }

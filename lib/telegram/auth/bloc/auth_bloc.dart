@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart';
 
+import '../../chat/view/chat_list_screen.dart';
 import '../view/tdlib_init_failed_screen.dart';
 
 part 'auth_event.dart';
@@ -191,7 +192,7 @@ extension AuthStateExt on AuthState {
       context.replace("/login/botToken#invalid");
     }
     if (this is AuthStateCurrentAccountReady) {
-      context.replace('/chat', extra: this);
+      context.replace(ChatListScreen.path, extra: this);
     }
   }
 }

@@ -15,7 +15,8 @@ import '../../auth/bloc/auth_bloc.dart';
 class ChatListScreen extends StatefulWidget {
   final AuthStateCurrentAccountReady? state;
   const ChatListScreen({super.key, this.state, required this.chatListType});
-  static const path = '/chat';
+  static const path = '/chat/list';
+  static const subpath = 'list';
   final t.ChatList chatListType;
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
