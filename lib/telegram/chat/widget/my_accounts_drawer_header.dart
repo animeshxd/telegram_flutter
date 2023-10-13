@@ -67,7 +67,7 @@ class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
                     fontWeight: FontWeight.w500, color: Colors.white),
               ),
               Text(
-                '${me.phone_number}',
+                '+${me.phone_number}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w400, color: Colors.white),
               ),
