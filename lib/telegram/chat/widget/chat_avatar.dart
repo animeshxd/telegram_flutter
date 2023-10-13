@@ -9,6 +9,7 @@ import 'package:tdffi/td.dart' as t;
 
 import '../../profile/services/download_profile_photo.dart';
 import '../models/chat.dart';
+import '../../../extensions/extensions.dart';
 
 class ChatColorAvatar extends StatelessWidget {
   const ChatColorAvatar({super.key, required this.id, required this.child});
@@ -34,9 +35,13 @@ class ChatColorAvatar extends StatelessWidget {
 }
 
 class ChatAvatar extends StatefulWidget {
-  final Chat chat;
+  final Chat? chat;
   final t.User? user;
-  const ChatAvatar({super.key, required this.chat, this.user});
+  const ChatAvatar({
+    super.key,
+    required this.chat,
+    this.user,
+  }) : assert(chat != null || user != null, "both chat and user can't be null");
 
   @override
   State<ChatAvatar> createState() => _ChatAvatarState();
@@ -56,20 +61,22 @@ class _ChatAvatarState extends State<ChatAvatar> {
     return avatar(widget.chat, widget.user);
   }
 
-  Widget avatar(Chat chat, t.User? user) {
-    var peerId = chat.type.chatTypeBasicGroup?.basic_group_id ??
-        chat.type.chatTypePrivate?.user_id ??
-        chat.type.chatTypeSecret?.secret_chat_id ??
-        chat.type.chatTypeSecret?.user_id ??
-        chat.type.chatTypeSupergroup?.supergroup_id ??
+  Widget avatar(Chat? chat, t.User? user) {
+    assert(chat != null || user != null, "both chat and user can't be null");
+    var peerId = chat?.type.chatTypeBasicGroup?.basic_group_id ??
+        chat?.type.chatTypePrivate?.user_id ??
+        chat?.type.chatTypeSecret?.secret_chat_id ??
+        chat?.type.chatTypeSecret?.user_id ??
+        chat?.type.chatTypeSupergroup?.supergroup_id ??
+        user?.id ??
         0;
-    var shortTitle = chat.title
+    var shortTitle = (chat?.title ?? user?.fullName ?? '')
         .split(" ")
         .where((element) => element.isNotEmpty)
         .take(2)
         .map((e) => e[0])
         .join();
-    var photo = chat.photo?.small;
+    var photo = chat?.photo?.small ?? user?.profile_photo?.small;
     if (photo == null) {
       if (user?.type.userTypeDeleted != null) {
         return ChatColorAvatar(
@@ -89,7 +96,8 @@ class _ChatAvatarState extends State<ChatAvatar> {
 
     Widget? avatar = avatarFromFile(photo.local.path);
     if (avatar != null) return avatar;
-    var imageSourceb64 = chat.photo?.minithumbnail?.data;
+    var imageSourceb64 = chat?.photo?.minithumbnail?.data ??
+        user?.profile_photo?.minithumbnail?.data;
     if (imageSourceb64 != null) {
       var imageSource = base64.decode(imageSourceb64);
       avatar = CircleAvatar(backgroundImage: MemoryImage(imageSource));
