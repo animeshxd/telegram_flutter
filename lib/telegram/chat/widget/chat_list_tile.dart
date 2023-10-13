@@ -139,7 +139,7 @@ class _ChatListTileState extends State<ChatListTile> {
           }
           return Badge.count(
             count: count,
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           );
         }),
       ],
@@ -193,7 +193,7 @@ class _ChatListTileState extends State<ChatListTile> {
             Flexible(
               child: EllipsisText(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
           if (label != null)
