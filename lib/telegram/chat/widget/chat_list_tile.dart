@@ -194,7 +194,13 @@ class _ChatListTileState extends State<ChatListTile> {
           //     padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
           //     child: Icon(icon, size: 10),
           //   ),
-          if (title.isNotEmpty) Flexible(child: EllipsisText(title)),
+          if (title.isNotEmpty)
+            Flexible(
+              child: EllipsisText(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
           if (label != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
