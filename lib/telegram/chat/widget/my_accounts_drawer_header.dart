@@ -97,8 +97,8 @@ class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
     return UserAccountsDrawerHeader(
       accountName: Text(me.fullName),
       accountEmail: Text('+${me.phone_number}'),
-      // decoration: getImageOrColorDecoration(me),
-      currentAccountPicture: ChatAvatar(user: me),
+      decoration: getImageOrColorDecoration(me),
+      // currentAccountPicture: ChatAvatar(user: me),
     );
   }
 
