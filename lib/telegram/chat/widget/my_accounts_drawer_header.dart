@@ -12,18 +12,16 @@ import 'chat_avatar.dart';
 
 class MyAccountsDrawerHeader extends StatefulWidget {
   const MyAccountsDrawerHeader({super.key, required this.user});
-  final t.User user;
+  final Rx<t.User> user;
 
   @override
   State<MyAccountsDrawerHeader> createState() => _MyAccountsDrawerHeaderState();
 }
 
-
 class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
-  StreamSubscription? subscription;
   late final TdlibEventController tdlib;
   late final DownloadProfilePhoto downloadProfilePhoto;
-  late final _me = widget.user.obs;
+  late final _me = widget.user;
   t.User get me => _me.value;
   @override
   void initState() {
@@ -32,16 +30,12 @@ class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
     tdlib = context.read();
     downloadProfilePhoto = context.read();
 
-    subscription = tdlib.updates
-        .whereType<t.UpdateUser>()
-        .where((event) => event.user.id == _me.value.id)
-        .listen((event) => _me.value = event.user);
   }
 
   @override
   void dispose() {
     super.dispose();
-    subscription?.cancel();
+
   }
 
   @override

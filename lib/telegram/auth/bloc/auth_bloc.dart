@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,6 +21,7 @@ var logger = Logger('AuthBloc');
 
 class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   TdlibEventController client;
+  StreamSubscription? _subscriptionForCurrentUser;
 
   AuthBloc(this.client) : super(AuthInitial()) {
     on<InitilizeAuthEvent>((event, emit) {
@@ -119,8 +123,19 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
     });
 
     on<AuthorizationStateReady>((event, emit) async {
-      var me = await client.send<User>(GetMe());
-      var isBot = me.type is UserTypeBot;
+      try {
+        await _subscriptionForCurrentUser?.cancel();
+      } on Exception {
+        _subscriptionForCurrentUser = null;
+      }
+      var me = (await client.send<User>(GetMe())).obs;
+
+      _subscriptionForCurrentUser = client.updates
+          .whereType<UpdateUser>()
+          .where((event) => event.user.id == me.value.id)
+          .listen((event) => me.value = event.user);
+      
+      var isBot = me.value.type is UserTypeBot;
       emit(AuthStateCurrentAccountReady(isBot, me));
     });
 
@@ -156,6 +171,7 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   @override
   Future<void> close() async {
     await client.destroy();
+    _subscriptionForCurrentUser?.cancel();
     logger.fine("client closed");
     super.close();
   }

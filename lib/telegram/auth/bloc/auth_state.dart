@@ -16,7 +16,7 @@ final class AuthStateLoginRequired extends AuthState {}
 
 final class AuthStateCurrentAccountReady extends AuthState {
   final bool isBot;
-  final User user;
+  final Rx<User> user;
 
   const AuthStateCurrentAccountReady(this.isBot, this.user);
 }

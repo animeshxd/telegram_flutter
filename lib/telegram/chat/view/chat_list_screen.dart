@@ -36,6 +36,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     profilePhotoController.loadExisting();
   }
 
+  t.User get me => widget.state!.user.value;
+
   @override
   Widget build(BuildContext context) {
     return AuthRouteManager(
@@ -100,7 +102,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   bool _whereChatIsNotMe(MapEntry<int, Chat> e) =>
-      e.key != widget.state!.user.id;
+      e.key != me.id;
 
   bool _whereChatHasCurrentChatListType(MapEntry<int, Chat> e) {
     return e.value.positions
