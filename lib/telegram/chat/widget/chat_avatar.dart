@@ -33,16 +33,16 @@ class ChatColorAvatar extends StatelessWidget {
   }
 }
 
-class ChatAvater extends StatefulWidget {
+class ChatAvatar extends StatefulWidget {
   final Chat chat;
   final t.User? user;
-  const ChatAvater({super.key, required this.chat, this.user});
+  const ChatAvatar({super.key, required this.chat, this.user});
 
   @override
-  State<ChatAvater> createState() => _ChatAvaterState();
+  State<ChatAvatar> createState() => _ChatAvatarState();
 }
 
-class _ChatAvaterState extends State<ChatAvater> {
+class _ChatAvatarState extends State<ChatAvatar> {
   late final DownloadProfilePhoto _downloadProfilePhoto;
   @override
   void initState() {
@@ -53,10 +53,10 @@ class _ChatAvaterState extends State<ChatAvater> {
 
   @override
   Widget build(BuildContext context) {
-    return avater(widget.chat, widget.user);
+    return avatar(widget.chat, widget.user);
   }
 
-  Widget avater(Chat chat, t.User? user) {
+  Widget avatar(Chat chat, t.User? user) {
     var peerId = chat.type.chatTypeBasicGroup?.basic_group_id ??
         chat.type.chatTypePrivate?.user_id ??
         chat.type.chatTypeSecret?.secret_chat_id ??

@@ -54,7 +54,7 @@ class _ChatListTileState extends State<ChatListTile> {
           var user = snapshot.data;
           return ListTile(
             //TODO: add better download small photo with retry
-            leading: ChatAvater(chat: chat, user: user),
+            leading: ChatAvatar(chat: chat, user: user),
             title: titleW(chat, user),
             subtitle: Align(
               alignment: Alignment.centerLeft,

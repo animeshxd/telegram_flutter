@@ -18,7 +18,7 @@ class ChatHistoryScreen extends StatelessWidget {
         appBar: AppBar(
           //TODO: show Title, Photo, chat type / member count
           title: ListTile(
-            leading: ChatAvater(chat: chat),
+            leading: ChatAvatar(chat: chat),
             title: Text(
               chat.title,
               overflow: TextOverflow.ellipsis,
