@@ -9,13 +9,12 @@ import '../view/chat_history_screen.dart';
 
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
+import 'chat_title.dart';
 import 'chat_avatar.dart';
 import 'chat_draft_message.dart';
-import 'chat_label.dart';
 import 'chat_mentioned_badge.dart';
 import 'chat_message.dart';
 import 'chat_reaction_badge.dart';
-import 'ellipsis_text.dart';
 
 class ChatListTile extends StatefulWidget {
   const ChatListTile({
@@ -55,7 +54,7 @@ class _ChatListTileState extends State<ChatListTile> {
           return ListTile(
             //TODO: add better download small photo with retry
             leading: ChatAvatar(chat: chat, user: user),
-            title: titleW(chat, user),
+            title: ChatTitle(chat: chat, user: user),
             subtitle: Align(
               alignment: Alignment.centerLeft,
               child: Obx(() {
@@ -73,7 +72,8 @@ class _ChatListTileState extends State<ChatListTile> {
               }),
             ),
             trailing: trailing,
-            onTap: () => context.push(ChatHistoryScreen.path, extra: {'chat': chat, 'user': user}),
+            onTap: () => context.push(ChatHistoryScreen.path,
+                extra: {'chat': chat, 'user': user}),
           );
         });
   }
@@ -144,66 +144,5 @@ class _ChatListTileState extends State<ChatListTile> {
         }),
       ],
     );
-  }
-
-  Widget titleW(Chat chat, t.User? user) {
-    var title = chat.title;
-    // var icon = switch (chat.type.runtimeType) {
-    //   t.ChatTypeBasicGroup => FontAwesomeIcons.userGroup,
-    //   t.ChatTypeSupergroup => chat.type.chatTypeSupergroup!.is_channel
-    //       ? FontAwesomeIcons.bullhorn
-    //       : FontAwesomeIcons.userGroup,
-    //   _ => null
-    // };
-    Widget? label;
-
-    if (user != null) {
-      if (user.type is t.UserTypeDeleted) {
-        title = 'Deleted Account';
-      }
-      // if (user.type is t.UserTypeBot) {
-      //   icon = FontAwesomeIcons.robot;
-      // }
-
-      if (user.is_verified) {
-        label = Icon(
-          Icons.verified,
-          size: 14,
-          color: Theme.of(context).colorScheme.primary,
-        );
-      }
-      if (user.is_fake || user.is_scam) {
-        label = ChatLabel(
-          label: user.is_fake ? "FAKE" : "SCAM",
-        );
-      }
-    }
-
-    if (/*icon != null ||*/ title.isNotEmpty) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // if (icon != null)
-          //   Padding(
-          //     padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          //     child: Icon(icon, size: 10),
-          //   ),
-          if (title.isNotEmpty)
-            Flexible(
-              child: EllipsisText(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          if (label != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
-              child: label,
-            ),
-        ],
-      );
-    }
-    return const SizedBox.shrink();
   }
 }
