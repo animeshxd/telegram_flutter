@@ -34,14 +34,14 @@ class _MainAppState extends State<MainApp> {
         path: LoadingPage.path,
         builder: (context, state) => const LoadingPage(),
       ),
-      chatRoute,
       GoRoute(
         path: '/error_tdlib',
         builder: (context, state) => TdlibInitFailedPage(
           error: state.extra as AuthStateTdlibInitilizedFailed,
         ),
       ),
-      loginRoutes
+      loginRoutes,
+      chatRoute,
     ],
     debugLogDiagnostics: true,
   );
