@@ -12,9 +12,9 @@ import '../models/chat.dart';
 import '../../../extensions/extensions.dart';
 
 class ChatColorAvatar extends StatelessWidget {
-  const ChatColorAvatar({super.key, required this.id, required this.child});
+  const ChatColorAvatar({super.key, required this.id, this.child});
   final int id;
-  final Widget child;
+  final Widget? child;
 
   final List<Color> colors = const [
     Colors.red,
