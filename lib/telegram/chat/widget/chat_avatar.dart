@@ -123,10 +123,16 @@ class _ChatAvatarState extends State<ChatAvatar> {
 
   Widget? avatarFromFile(String? path) {
     // debugPrint(path);
-    if (path == null) return null;
-    if (path.isEmpty) return null;
-    var file = File(path);
-    if (!file.existsSync()) return null;
-    return CircleAvatar(backgroundImage: FileImage(file));
+    var image = getImageWFromFile(path);
+    if (image == null) return null;
+    return CircleAvatar(backgroundImage: image);
   }
+}
+
+FileImage? getImageWFromFile(String? path) {
+  if (path == null) return null;
+  if (path.isEmpty) return null;
+  var file = File(path);
+  if (!file.existsSync()) return null;
+  return FileImage(file);
 }
