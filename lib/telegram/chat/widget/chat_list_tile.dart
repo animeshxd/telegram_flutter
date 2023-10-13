@@ -170,10 +170,10 @@ class _ChatListTileState extends State<ChatListTile> {
       }
 
       if (user.is_verified) {
-        label = const Icon(
-          Icons.check_circle_outline, //TODO: ADD better
+        label = Icon(
+          Icons.verified,
           size: 14,
-          color: Colors.green,
+          color: Theme.of(context).colorScheme.primary,
         );
       }
       if (user.is_fake || user.is_scam) {
