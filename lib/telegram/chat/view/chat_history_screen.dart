@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tdffi/td.dart' as t;
+import '../widget/chat_title.dart';
 import '../widget/chat_avatar.dart';
 import '../../auth/widget/auth_route_manager.dart';
 import '../models/chat.dart';
@@ -19,10 +20,7 @@ class ChatHistoryScreen extends StatelessWidget {
           //TODO: show Title, Photo, chat type / member count
           title: ListTile(
             leading: ChatAvatar(chat: chat),
-            title: Text(
-              chat.title,
-              overflow: TextOverflow.ellipsis,
-            ),
+            title: ChatTitle(chat: chat, user: user),
             subtitle: const Text('test'),
             contentPadding: const EdgeInsets.all(0),
           ),
