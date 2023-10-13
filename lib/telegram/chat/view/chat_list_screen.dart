@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
+import '../widget/my_accounts_drawer_header.dart';
 
 import '../../auth/widget/auth_route_manager.dart';
 import '../models/chat.dart';
@@ -50,7 +51,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
         drawer: Drawer(
           child: ListView(
-            children: const [DrawerHeader(child: Text(''))],
+            children: [MyAccountsDrawerHeader(user: widget.state!.user)],
           ),
         ),
         body: Center(
