@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,13 +41,78 @@ class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      downloadProfilePhoto.downloadFile(me.profile_photo?.small);
-      return UserAccountsDrawerHeader(
-        accountName: Text(me.fullName),
-        accountEmail: Text('+${me.phone_number}'),
-        currentAccountPicture: ChatAvatar(user: me),
+      downloadProfilePhoto.downloadFile(me.profile_photo?.big);
+      return Container(
+        height: MediaQuery.of(context).size.height * .3,
+        decoration: getImageOrColorDecoration(me),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withOpacity(.6),
+                Colors.black.withOpacity(.2),
+                Colors.transparent
+              ],
+              begin: AlignmentDirectional.bottomEnd,
+            ),
+          ),
+          padding: const EdgeInsets.only(left: 10, bottom: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                me.fullName,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500, color: Colors.white),
+              ),
+              Text(
+                '${me.phone_number}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w400, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
         // switch to decoration
       );
     });
+  }
+
+  Decoration? getImageOrColorDecoration(t.User user) {
+    var photo = user.profile_photo?.big;
+    String? path = downloadProfilePhoto.state[photo?.id ?? 0];
+    if (path != null) {
+      var image = getImageWFromFile(path);
+      if (image != null) {
+        return BoxDecoration(
+          image: DecorationImage(
+            image: image,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    }
+    if (photo != null) {
+      var image = getImageWFromFile(photo.local.path);
+      if (image != null) {
+        return BoxDecoration(
+          image: DecorationImage(
+            image: image,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    }
+    var imageSourceb64 = user.profile_photo?.minithumbnail?.data;
+    if (imageSourceb64 != null) {
+      var imageSource = base64.decode(imageSourceb64);
+      return BoxDecoration(
+        image:
+            DecorationImage(image: MemoryImage(imageSource), fit: BoxFit.cover),
+      );
+    }
+
+    return BoxDecoration(color: ChatColorAvatar.getColor(user.id));
   }
 }
