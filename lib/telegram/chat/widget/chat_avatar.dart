@@ -39,7 +39,7 @@ class ChatAvatar extends StatefulWidget {
   final t.User? user;
   const ChatAvatar({
     super.key,
-    required this.chat,
+    this.chat,
     this.user,
   }) : assert(chat != null || user != null, "both chat and user can't be null");
 
