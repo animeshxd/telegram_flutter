@@ -43,8 +43,8 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
     });
 
     on<AuthorizationStateWaitTdlibParameters>((event, emit) async {
-      if (await client.currentAuthorizationState
-          is AuthorizationStateWaitTdlibParameters) {
+      var currentAuthState = await client.currentAuthorizationState;
+      if (currentAuthState is AuthorizationStateWaitTdlibParameters) {
         var directory = await getApplicationCacheDirectory();
         int maxTries = AuthStateTdlibInitilizedFailed.MAX_TRIES;
         while (--maxTries >= 0) {
@@ -121,20 +121,16 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
         emit(AuthStateCodeInvalid(error: e));
       }
     });
-
     on<AuthorizationStateReady>((event, emit) async {
-      try {
-        await _subscriptionForCurrentUser?.cancel();
-      } on Exception {
-        _subscriptionForCurrentUser = null;
-      }
+      await _subscriptionForCurrentUser?.cancel();
+
       var me = (await client.send<User>(GetMe())).obs;
 
       _subscriptionForCurrentUser = client.updates
           .whereType<UpdateUser>()
           .where((event) => event.user.id == me.value.id)
           .listen((event) => me.value = event.user);
-      
+
       var isBot = me.value.type is UserTypeBot;
       emit(AuthStateCurrentAccountReady(isBot, me));
     });
