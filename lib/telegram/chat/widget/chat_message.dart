@@ -215,13 +215,13 @@ class _ChatMessageState extends State<ChatMessage> {
       text: TextSpan(
         style: _textStyleBodySmall,
         children: [
+          if (senderName.isNotEmpty) TextSpan(text: senderName),
+          if (senderName.isNotEmpty) TextSpan(text: isChatActions ? ' ' : ": "),
           if (icon != null)
             WidgetSpan(
               child: Icon(icon, size: iconSize),
             ),
           if (icon != null) const TextSpan(text: ' '),
-          if (senderName.isNotEmpty) TextSpan(text: senderName),
-          if (senderName.isNotEmpty) TextSpan(text: isChatActions ? ' ' : ": "),
           TextSpan(text: caption.trim().replaceAll('\n', '')),
         ],
       ),
