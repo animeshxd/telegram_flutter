@@ -5,8 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
-import '../../../extensions/extensions.dart';
-
+import '../../extensions/extensions.dart';
 import '../../profile/services/download_profile_photo.dart';
 import 'chat_avatar.dart';
 

@@ -9,7 +9,7 @@ import 'package:tdffi/td.dart' as t;
 
 import '../../profile/services/download_profile_photo.dart';
 import '../models/chat.dart';
-import '../../../extensions/extensions.dart';
+import '../../extensions/extensions.dart';
 
 class ChatColorAvatar extends StatelessWidget {
   const ChatColorAvatar({super.key, required this.id, this.child});

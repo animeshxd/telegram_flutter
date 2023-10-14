@@ -6,7 +6,7 @@ import 'package:tdffi/td.dart' as t;
 import '../../../const/regexs.dart';
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
-import '../../../extensions/extensions.dart';
+import '../../extensions/extensions.dart';
 
 class ChatMessage extends StatefulWidget {
   const ChatMessage({
@@ -194,7 +194,8 @@ class _ChatMessageState extends State<ChatMessage> {
     }
     if (message.is_outgoing && isChatActions) senderName = 'You';
 
-    String caption = await _getCaptionText(message, chat) ?? '${message.content.runtimeType}';
+    String caption = await _getCaptionText(message, chat) ??
+        '${message.content.runtimeType}';
 
     var icon = switch (content.runtimeType) {
       t.MessageAudio => Icons.audio_file,
@@ -219,8 +220,7 @@ class _ChatMessageState extends State<ChatMessage> {
             ),
           if (icon != null) const TextSpan(text: ' '),
           if (senderName.isNotEmpty) TextSpan(text: senderName),
-          if (senderName.isNotEmpty)
-            TextSpan(text: isChatActions ? ' ' : ": "),
+          if (senderName.isNotEmpty) TextSpan(text: isChatActions ? ' ' : ": "),
           TextSpan(text: caption.trim().replaceAll('\n', '')),
         ],
       ),

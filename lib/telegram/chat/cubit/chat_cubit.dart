@@ -8,7 +8,7 @@ import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
 
 import '../models/chat.dart';
-import '../../../extensions/extension_tlobjects.dart';
+import '../../extensions/extension_tlobjects.dart';
 
 part 'chat_state.dart';
 

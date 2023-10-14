@@ -1,5 +1,5 @@
 import 'package:tdffi/td.dart';
-import '../telegram/chat/models/chat.dart' as m;
+import '../chat/models/chat.dart' as m;
 
 extension UserExt on User {
   String get fullName {
