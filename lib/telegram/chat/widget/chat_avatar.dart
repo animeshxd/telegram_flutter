@@ -7,9 +7,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:tdffi/td.dart' as t;
 
+import '../../extensions/extensions.dart';
 import '../../profile/services/download_profile_photo.dart';
 import '../models/chat.dart';
-import '../../extensions/extensions.dart';
 
 class ChatColorAvatar extends StatelessWidget {
   const ChatColorAvatar({super.key, required this.id, this.child});

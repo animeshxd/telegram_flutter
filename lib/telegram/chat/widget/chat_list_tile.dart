@@ -5,16 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart' as t;
-import '../view/chat_history_screen.dart';
 
 import '../cubit/chat_cubit.dart';
 import '../models/chat.dart';
-import 'chat_title.dart';
+import '../view/chat_history_screen.dart';
 import 'chat_avatar.dart';
 import 'chat_draft_message.dart';
 import 'chat_mentioned_badge.dart';
 import 'chat_message.dart';
 import 'chat_reaction_badge.dart';
+import 'chat_title.dart';
 
 class ChatListTile extends StatefulWidget {
   const ChatListTile({

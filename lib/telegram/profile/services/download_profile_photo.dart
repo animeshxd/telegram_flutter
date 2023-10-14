@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:io' as io;
+
 import 'package:get/get_rx/get_rx.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:tdffi/client.dart';
 import 'package:tdffi/td.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart' as p;
 
 class DownloadProfilePhoto {
   StreamSubscription? _streamSubscription;

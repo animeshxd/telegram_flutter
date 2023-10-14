@@ -6,11 +6,11 @@ import 'package:tdffi/client.dart';
 import 'telegram/auth/bloc/auth_bloc.dart';
 import 'telegram/auth/login/view/routes.dart';
 import 'telegram/auth/view/tdlib_init_failed_screen.dart';
-import 'telegram/profile/services/download_profile_photo.dart';
 import 'telegram/chat/cubit/chat_cubit.dart';
 import 'telegram/chat/view/routes.dart';
 import 'telegram/client_initializer/cubit/client_initializer_cubit.dart';
 import 'telegram/connection/cubit/connection_cubit.dart';
+import 'telegram/profile/services/download_profile_photo.dart';
 import 'view/loading_page.dart';
 import 'widget/multi_bloc_and_repository_provider.dart';
 
