@@ -17,21 +17,21 @@ class ChatCubit extends Cubit<ChatState> {
   final TdlibEventController tdlib;
 
   final _streamSubscriptions = <StreamSubscription>[];
-  final chats = <int, Chat>{}.obs;
-  final users = <int, t.User>{}.obs;
-  var ignoredChats = <int>{}.obs;
+  final _chats = <int, Chat>{}.obs;
+  final _users = <int, t.User>{}.obs;
+  final _ignoredChats = <int>{}.obs;
 
-  ChatLoaded get loadedState => ChatLoaded(
-        chats: chats,
-        ignoredChats: ignoredChats,
-        users: users,
+  ChatLoaded get _loadedState => ChatLoaded(
+        chats: _chats,
+        ignoredChats: _ignoredChats,
+        users: _users,
       );
-  final idleDuration = const Duration(milliseconds: 1500);
-  Timer? idleTimer;
+  final _idleDuration = const Duration(milliseconds: 1500);
+  Timer? _idleTimer;
   bool _timerforLoadChatResult = false;
 
   void _emitForLoadChatResult() {
-    emit(loadedState);
+    emit(_loadedState);
     _timerforLoadChatResult = false;
   }
 
@@ -70,39 +70,39 @@ class ChatCubit extends Cubit<ChatState> {
           .map((event) => event.supergroup)
           .where((e) => _whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
-          .listen(ignoredChats.add),
+          .listen(_ignoredChats.add),
       tdlib.updates
           .whereType<t.UpdateSupergroup>()
           .map((event) => event.supergroup)
           .where((e) => !_whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
-          .listen(ignoredChats.remove),
+          .listen(_ignoredChats.remove),
       tdlib.updates
           .whereType<t.UpdateBasicGroup>()
           .map((event) => event.basic_group)
           .where((e) => _whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
-          .listen(ignoredChats.add),
+          .listen(_ignoredChats.add),
       tdlib.updates
           .whereType<t.UpdateBasicGroup>()
           .map((event) => event.basic_group)
           .where((e) => !_whereChatMemberStatusBannedOrLeft(e.status))
           .map((event) => event.id)
-          .listen(ignoredChats.remove),
+          .listen(_ignoredChats.remove),
       tdlib.updates
           .whereType<t.UpdateUser>()
-          .listen((user) => users[user.user.id] = user.user),
+          .listen((user) => _users[user.user.id] = user.user),
       tdlib.updates.whereType<t.UpdateChatPhoto>().listen(_onUpdateChatPhoto),
     ]);
   }
 
   void _onUpdateChatPhoto(t.UpdateChatPhoto event) {
-    chats[event.chat_id]?.photo = event.photo;
-    chats.refresh();
+    _chats[event.chat_id]?.photo = event.photo;
+    _chats.refresh();
   }
 
   void _onUpdateChatDraftMessage(t.UpdateChatDraftMessage event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(
         draftMessage: event.draft_message,
@@ -123,7 +123,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatUnreadReactionCount(t.UpdateChatUnreadReactionCount event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(
         unreadReactionCount: event.unread_reaction_count,
@@ -136,7 +136,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatUnreadMentionCount(t.UpdateChatUnreadMentionCount event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(
         unreadMentionCount: event.unread_mention_count,
@@ -149,7 +149,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatReadInbox(t.UpdateChatReadInbox event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(unreadMessageCount: event.unread_count),
       ifAbsent: () => Chat.unknown(
@@ -160,7 +160,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatPosition(t.UpdateChatPosition event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(positions: [event.position]),
       ifAbsent: () => Chat.unknown(
@@ -171,12 +171,12 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onUpdateChatTitle(t.UpdateChatTitle event) {
-    chats[event.chat_id]?.title = event.title;
-    chats.refresh();
+    _chats[event.chat_id]?.title = event.title;
+    _chats.refresh();
   }
 
   void _onUpdateChatLastMessage(t.UpdateChatLastMessage event) {
-    chats.update(
+    _chats.update(
       event.chat_id,
       (value) => value.update(
         positions: event.positions,
@@ -191,14 +191,14 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   void _onNewChat(t.Chat chat) {
-    chats.update(
+    _chats.update(
       chat.id,
       (value) => value.updateFromTdChat(chat),
       ifAbsent: () => chat.mod,
     );
     if (_timerforLoadChatResult) {
-      idleTimer?.cancel();
-      idleTimer = Timer(idleDuration, _emitForLoadChatResult);
+      _idleTimer?.cancel();
+      _idleTimer = Timer(_idleDuration, _emitForLoadChatResult);
     }
   }
 
