@@ -148,18 +148,6 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   }
 
   @override
-  void onEvent(AuthorizationStateEvent event) {
-    super.onEvent(event);
-    logger.fine("event: ${event.runtimeType}");
-  }
-
-  @override
-  void onChange(Change<AuthState> change) {
-    super.onChange(change);
-    logger.fine("state: ${change.currentState == change.nextState} $change");
-  }
-
-  @override
   void onError(Object error, StackTrace stackTrace) {
     if (error is TelegramError) {
       add(AuthFailedEvent(error));
