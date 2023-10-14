@@ -9,7 +9,7 @@ import 'telegram/auth/view/tdlib_init_failed_screen.dart';
 import 'telegram/profile/services/download_profile_photo.dart';
 import 'telegram/chat/cubit/chat_cubit.dart';
 import 'telegram/chat/view/routes.dart';
-import 'telegram/client/bloc/telegram_client_bloc.dart';
+import 'telegram/client_initializer/cubit/client_initializer_cubit.dart';
 import 'telegram/connection/cubit/connection_cubit.dart';
 import 'view/loading_page.dart';
 import 'widget/multi_bloc_and_repository_provider.dart';
@@ -59,7 +59,7 @@ class _MainAppState extends State<MainApp> {
         RepositoryProvider.value(value: _photoDownloader),
       ],
       blocs: [
-        BlocProvider(create: (context) => TelegramClientBloc(context.read())),
+        BlocProvider(create: (ctx) => ClientInitializerCubit(ctx.read())),
         BlocProvider(create: (context) => AuthBloc(context.read())),
         BlocProvider(create: (context) => ConnectionCubit(context.read())),
         BlocProvider(create: (context) => ChatCubit(context.read()))

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tdffi/client.dart';
 
 import '../telegram/auth/bloc/auth_bloc.dart';
-import '../telegram/client/bloc/telegram_client_bloc.dart';
+import '../telegram/client_initializer/cubit/client_initializer_cubit.dart';
 
 class LoadingPage extends StatefulWidget {
   static const path = '/';
@@ -16,23 +16,21 @@ class LoadingPage extends StatefulWidget {
 
 class _LoadingPageState extends State<LoadingPage> {
   late TdlibEventController tdlib;
-  late TelegramClientBloc client;
   late AuthBloc auth;
 
   @override
   void initState() {
     super.initState();
     tdlib = context.read();
-    client = context.read();
     auth = context.read();
-    client.add(const InitilizeClient());
+    context.read<ClientInitializerCubit>().initilize();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TelegramClientBloc, TelegramClientState>(
+    return BlocListener<ClientInitializerCubit, ClientInitializerState>(
       listener: (context, state) {
-        if (state is ClientInitilizedState) {
+        if (state == ClientInitializerState.initialized) {
           auth.add(AuthCheckCurrentStateEvent());
         }
       },
