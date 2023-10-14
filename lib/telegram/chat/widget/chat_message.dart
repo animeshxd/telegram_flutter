@@ -116,6 +116,7 @@ class _ChatMessageState extends State<ChatMessage> {
     var score = content.score;
 
     try {
+      //TODO: Move this somewhere else
       var message = await _tdlib.send<t.Message>(
         t.GetMessage(chat_id: chat.id, message_id: content.game_message_id),
       );
@@ -164,6 +165,8 @@ class _ChatMessageState extends State<ChatMessage> {
     //TODO: Separator Caption only
     //TODO: Show text format based on FormattedText
     //TODO: Show who pinned what message/type of content
+    //TODO: Show pinned icon for pinned message
+    //TODO: Show forward icon for forwarded message
     if (message == null) return const SizedBox.shrink();
     var content = message.content;
 
