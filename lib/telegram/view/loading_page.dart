@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tdffi/client.dart';
 
-import '../telegram/auth/bloc/auth_bloc.dart';
-import '../telegram/client_initializer/cubit/client_initializer_cubit.dart';
+import '../auth/bloc/auth_bloc.dart';
+import '../client_initializer/cubit/client_initializer_cubit.dart';
 
 class LoadingPage extends StatefulWidget {
   static const path = '/';
