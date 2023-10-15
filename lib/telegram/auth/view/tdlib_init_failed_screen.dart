@@ -41,10 +41,7 @@ class _TdlibInitFailedPageState extends State<TdlibInitFailedPage> {
                 action: SnackBarAction(
                   label: 'Exit',
                   onPressed: () {
-                    context
-                        .read<TdlibEventController>()
-                        .destroy()
-                        .then((value) => exit(0));
+                    context.read<Tdlib>().destroy().then((value) => exit(0));
                   },
                 ),
                 behavior: SnackBarBehavior.fixed,

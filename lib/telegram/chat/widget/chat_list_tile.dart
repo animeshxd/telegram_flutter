@@ -32,7 +32,7 @@ class ChatListTile extends StatefulWidget {
 }
 
 class _ChatListTileState extends State<ChatListTile> {
-  late final TdlibEventController _tdlib;
+  late final Tdlib _tdlib;
 
   @override
   void initState() {

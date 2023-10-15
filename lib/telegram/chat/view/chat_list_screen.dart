@@ -24,14 +24,14 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  late final TdlibEventController tdlib;
+  late final Tdlib tdlib;
   late final DownloadProfilePhoto profilePhotoController;
   t.ChatList get chatListType => widget.chatListType;
   @override
   void initState() {
     super.initState();
     context.read<ChatCubit>().loadChats(chatListType);
-    tdlib = context.read<TdlibEventController>();
+    tdlib = context.read<Tdlib>();
     profilePhotoController = context.read();
     profilePhotoController.loadExisting();
   }

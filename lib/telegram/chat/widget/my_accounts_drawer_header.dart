@@ -19,7 +19,7 @@ class MyAccountsDrawerHeader extends StatefulWidget {
 }
 
 class _MyAccountsDrawerHeaderState extends State<MyAccountsDrawerHeader> {
-  late final TdlibEventController tdlib;
+  late final Tdlib tdlib;
   late final DownloadProfilePhoto downloadProfilePhoto;
   late final _me = widget.user;
   t.User get me => _me.value;

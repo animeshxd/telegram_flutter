@@ -25,7 +25,7 @@ class ChatMessage extends StatefulWidget {
 }
 
 class _ChatMessageState extends State<ChatMessage> {
-  late final TdlibEventController _tdlib;
+  late final Tdlib _tdlib;
 
   late TextStyle _textStyleBodySmall;
 

@@ -25,7 +25,7 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  final _tdlib = TdlibEventController(dynamicLibPath: dynamicLibPath);
+  final _tdlib = Tdlib(dynamicLibPath: dynamicLibPath);
   late final _photoDownloader = DownloadProfilePhoto(_tdlib);
 
   final _routes = GoRouter(

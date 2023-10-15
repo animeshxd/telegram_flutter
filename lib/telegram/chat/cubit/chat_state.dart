@@ -22,7 +22,7 @@ final class ChatLoaded extends ChatState {
     required this.users,
   });
 
-  Future<Chat> getChat(int id, TdlibEventController tdlib) async {
+  Future<Chat> getChat(int id, Tdlib tdlib) async {
     var chat = chats[id];
     if (chat == null) {
       chat = (await tdlib.send<t.Chat>(t.GetChat(chat_id: id))).mod;
@@ -31,7 +31,7 @@ final class ChatLoaded extends ChatState {
     return chat;
   }
 
-  Future<t.User> getUser(int id, TdlibEventController tdlib) async {
+  Future<t.User> getUser(int id, Tdlib tdlib) async {
     var user = users[id];
     if (user == null) {
       user = (await tdlib.send<t.User>(t.GetUser(user_id: id)));

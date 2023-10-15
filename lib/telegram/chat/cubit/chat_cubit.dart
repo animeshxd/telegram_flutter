@@ -14,7 +14,7 @@ part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
   late var logger = Logger(runtimeType.toString());
-  final TdlibEventController tdlib;
+  final Tdlib tdlib;
 
   final _streamSubscriptions = <StreamSubscription>[];
   final _chats = <int, Chat>{}.obs;

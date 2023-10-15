@@ -10,7 +10,7 @@ import 'package:tdffi/td.dart';
 
 class DownloadProfilePhoto {
   StreamSubscription? _streamSubscription;
-  final TdlibEventController tdlib;
+  final Tdlib tdlib;
   Database? _database;
 
   final state = <int, String>{}.obs;

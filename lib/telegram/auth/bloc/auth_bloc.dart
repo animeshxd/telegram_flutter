@@ -20,7 +20,7 @@ typedef AuthorizationStateEvent = AuthorizationState;
 var logger = Logger('AuthBloc');
 
 class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
-  TdlibEventController client;
+  Tdlib client;
   StreamSubscription? _subscriptionForCurrentUser;
 
   AuthBloc(this.client) : super(AuthInitial()) {
@@ -161,7 +161,7 @@ class AuthBloc extends Bloc<AuthorizationStateEvent, AuthState> {
   }
 }
 
-extension on TdlibEventController {
+extension on Tdlib {
   Future<AuthorizationState> get currentAuthorizationState async =>
       await send<AuthorizationState>(GetAuthorizationState());
 }
